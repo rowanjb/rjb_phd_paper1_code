@@ -7,4 +7,4 @@ Stored elsewhere:
 
 The sea ice data was accessed from AWI's HTTPS server at https://data.meereisportal.de/data/iup/hdf/s/. If this doesn't work, try the IUP's server at https://data.seaice.uni-bremen.de/amsr2/. 
 
-ERA5 data was accessed using the CDS API client Python package. See ``cds_request.py'' for example usage.
+ERA5 data was accessed using the CDS API client Python package. See `cds_request.py` for example usage.
