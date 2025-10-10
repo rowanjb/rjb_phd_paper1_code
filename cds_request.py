@@ -1,3 +1,6 @@
+# Example use of the cdsapi package. This script should be located
+# wherever you want the data to end up
+
 import cdsapi
 
 dataset = "reanalysis-era5-single-levels"
