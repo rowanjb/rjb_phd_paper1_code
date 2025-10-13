@@ -1,5 +1,13 @@
 # For looking at atmospheric reanalyses near the mooring (ERA5) and sea ice
-# maps from the AWI Sea Ice Portal
+# maps from the AWI Sea Ice Portal. The ERA5 data was downloaded using
+# the CDS API Python package (for example usage, see: cds_request.py).
+# The ice portal data is specifically from the University of Bremen’s
+# Institute of Environmental Physics AMSR2 dataset (Spreen et al., 2008).
+# I accessed it from the ice portal's https server on January 16, 2025.
+# I /think/ I used wget for this, but in any case it can be done easily
+# from a browser. The ERA5 data comes as netcdfs whereas the ice portal
+# data comes as .hdf files, and these require processing using the
+# sea_ice_conc_nc() function.
 
 import numpy as np
 import xarray as xr
