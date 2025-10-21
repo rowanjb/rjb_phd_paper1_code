@@ -168,10 +168,12 @@ def plot_atm_and_ice():
     ds = xr.open_dataset(filepath)
     dateranges = [["20210401", "20210701"], ["20210701", "20211001"],
                   ["20211001", "20220101"], ["20220101", "20220401"],
-                  ["20210905", "20210905"]]
+                  ["20210829", "20210829"], ["20210905", "20210905"],
+                  ["20210912", "20210912"]]
     titles = [["Apr-Jun 2021"], ["Jul-Sep 2021"], ["Oct-Dec 2021"],
-              ["Jan-Mar 2022"], ["5 Sep 2021"]]
-    
+              ["Jan-Mar 2022"], ["29 Aug 2021"], ["5 Sep 2021"],
+              ["12 Sep 2021"]]
+
     # For the time series
     id = select_nearest_coord(longitude=-27.0048333, latitude=-69.0005000)
     da_si = xr.open_dataset(filepath)['ice_conc']
@@ -187,29 +189,41 @@ def plot_atm_and_ice():
 
     # Plotting
     cm = 1/2.54  # Inches to centimeters
-    layout = [['ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax8', 'ax8'],
+    layout = [['ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax1', '.', '.'],
               ['ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax8', 'ax8'],
-              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax8', 'ax8'],
-              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax8', 'ax8'],
-              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax8', 'ax8'],
-              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax8', 'ax8'],
+              ['ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax8', 'ax8'],
+              ['ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax1', 'ax8', 'ax8'],
+              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', '.', '.'],
+              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax9', 'ax9'],
+              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax9', 'ax9'],
+              ['ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax2', 'ax9', 'ax9'],
+              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', '.', '.'],
+              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax10', 'ax10'],
+              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax10', 'ax10'],
+              ['ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax7', 'ax10', 'ax10'],
+              ['.', '.', '.', '.', '.', '.', '.', '.'],
               ['.', '.', '.', '.', '.', '.', '.', '.'],
               ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
               ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
               ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
               ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
+              ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
+              ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
+              ['ax3', 'ax3', 'ax4', 'ax4', 'ax5', 'ax5', 'ax6', 'ax6'],
+              ['.', '.', '.', '.', '.', '.', '.', '.'],
               ['.', '.', '.', '.', '.', '.', '.', '.']]
     proj = ccrs.Mercator(central_longitude=-69,
-                            min_latitude=-80, max_latitude=-50, 
+                            min_latitude=-80, max_latitude=-50,
                             latitude_true_scale=-69)
     subplot_kw = dict(projection=proj)
     fig, axd = plt.subplot_mosaic(
-        layout, per_subplot_kw={("ax3", "ax4", "ax5", "ax6", "ax8"):
-                                subplot_kw})
+        layout, per_subplot_kw={("ax3", "ax4", "ax5", "ax6", "ax8", "ax9",
+                                 "ax10"): subplot_kw})
     fig.set_figwidth(19*cm)
     fig.set_figheight(15*cm)
-    ax1, ax2, ax7, ax8 = axd['ax1'], axd['ax2'], axd['ax7'], axd['ax8']
+    ax1, ax2, ax7 = axd['ax1'], axd['ax2'], axd['ax7']
     ax3, ax4, ax5, ax6 = axd['ax3'], axd['ax4'], axd['ax5'], axd['ax6']
+    ax8, ax9, ax10 = axd['ax8'], axd['ax9'], axd['ax10']
 
     # Plot wind
     t2m_plot = t2m.resample(valid_time="d").mean()
@@ -220,43 +234,81 @@ def plot_atm_and_ice():
     # Plot sea ice time series
     da_si.plot(ax=ax7, c='k', zorder=100, lw=1)
 
-    # Denote forcing date and add max and min points
-    forcing_date = dt.strptime('2021-09-05', '%Y-%m-%d')
+    # == Annotations == #
     awi_c = (55/256, 167/256, 222/256)
     other_c = 'hotpink'
-    ax1.vlines(x=forcing_date, ymin=-35, ymax=2, colors=other_c, lw=0.8)
-    ax2.vlines(x=forcing_date, ymin=0, ymax=25, colors=other_c, lw=0.8)
-    ax7.vlines(x=forcing_date, ymin=0, ymax=100, colors=other_c, lw=0.8)
-    t2m_min = t2m_plot.sel(valid_time=forcing_date)
-    ax1.scatter(forcing_date, t2m_min, s=100, c=awi_c, edgecolors='k',
+    day5 = dt.strptime('2021-09-05', '%Y-%m-%d')
+    day12 = dt.strptime('2021-09-12', '%Y-%m-%d')
+    day6 = dt.strptime('2021-09-06', '%Y-%m-%d')
+    day14 = dt.strptime('2021-09-14', '%Y-%m-%d')
+
+    # Vertical line #1
+    ax1.vlines(x=day5, ymin=-35, ymax=2, colors=other_c, lw=0.8)
+    ax2.vlines(x=day5, ymin=0, ymax=25, colors=other_c, lw=0.8)
+    ax7.vlines(x=day5, ymin=0, ymax=100, colors=other_c, lw=0.8)
+
+    # Vertical line # 2
+    ax1.vlines(x=day12, ymin=-35, ymax=2, colors=other_c, lw=0.8, ls='dashed')
+    ax2.vlines(x=day12, ymin=0, ymax=25, colors=other_c, lw=0.8, ls='dashed')
+    ax7.vlines(x=day12, ymin=0, ymax=100, colors=other_c, lw=0.8, ls='dashed')
+
+    # Temp minimums
+    t2m_min5 = t2m_plot.sel(valid_time=day5)
+    ax1.scatter(day5, t2m_min5, s=100, c=awi_c, edgecolors='k',
                 marker='.', lw=0.5, zorder=80)
-    ax1.annotate(str(t2m_min.values)[:6]+" $℃$ (5 Sep)",
-                 xytext=(forcing_date+td(days=25), -26), c=awi_c,
-                 xy=(forcing_date, t2m_min), va="center", ha='left',
-                 fontsize=9, arrowprops=dict(arrowstyle="->", color = awi_c))
-    wind_max = wind_plot.sel(valid_time=forcing_date)
-    ax2.scatter(forcing_date, wind_max, s=100, c=awi_c, edgecolors='k',
+    ax1.annotate(str(t2m_min5.values)[:6]+" $℃$ (5 Sep)",
+                 xytext=(day5+td(days=15), -32), c=awi_c,
+                 xy=(day5, t2m_min5), va="center", ha='left',
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
+    t2m_min12 = t2m_plot.sel(valid_time=day12)
+    ax1.scatter(day12, t2m_min12, s=100, c=awi_c, edgecolors='k',
                 marker='.', lw=0.5, zorder=80)
-    ax2.annotate(str(wind_max.values)[:5]+" $m$ $s^{-1}$ (5 Sep)",
-                 xytext=(forcing_date+td(days=25), 17), c=awi_c,
-                 xy=(forcing_date, wind_max), va="center", ha='left',
-                 fontsize=9, arrowprops=dict(arrowstyle="->", color = awi_c))
+    ax1.annotate(str(t2m_min12.values)[:6]+" $℃$ (12 Sep)",
+                 xytext=(day12+td(days=15), -23), c=awi_c,
+                 xy=(day12, t2m_min12), va="center", ha='left',
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
+
+    # Wind maximums
+    wind_max5 = wind_plot.sel(valid_time=day5)
+    ax2.scatter(day5, wind_max5, s=100, c=awi_c, edgecolors='k',
+                marker='.', lw=0.5, zorder=80)
+    ax2.annotate(str(wind_max5.values)[:5]+" $m$ $s^{-1}$ (5 Sep)",
+                 xytext=(day5-td(days=120), 17), c=awi_c,
+                 xy=(day5, wind_max5), va="center", ha='left',
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
+    wind_max14 = wind_plot.sel(valid_time=day14)
+    ax2.scatter(day14, wind_max14, s=100, c=awi_c, edgecolors='k',
+                marker='.', lw=0.5, zorder=80)
+    ax2.annotate(str(wind_max14.values)[:4]+" $m$ $s^{-1}$ (14 Sep)",
+                 xytext=(day14+td(days=20), 17), c=awi_c,
+                 xy=(day14, wind_max14), va="center", ha='left',
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
 
     # Denote the vertical line
-    ax7.annotate("Atmos. forcing\nanomaly (5 Sep)",
-                 xytext=(forcing_date-td(days=20), 15),
-                 xy=(forcing_date, 10), fontsize=9, c=other_c, ha='right',
-                 arrowprops=dict(arrowstyle="->", color = other_c))
+    ax7.annotate("Wind and air temp.\nanomaly (5 Sep)",
+                 xytext=(day5-td(days=20), 15),
+                 xy=(day5, 10), fontsize=9, c=other_c, ha='right',
+                 arrowprops=dict(arrowstyle="->", color=other_c))
+    ax7.annotate("Air temp.\nanomaly (12 Sep)",
+                 xytext=(day12+td(days=15), 5),
+                 xy=(day12, 10), fontsize=9, c=other_c, ha='left',
+                 arrowprops=dict(arrowstyle="->", color=other_c))
 
     # For the sea ice concentration, it is actually min'ed 1 day later
-    forcing_date = dt.strptime('2021-09-06', '%Y-%m-%d')
-    min_si_conc = da_si.sel(date=forcing_date)
-    ax7.scatter(forcing_date, min_si_conc, s=100, c=awi_c, edgecolors='k',
+    min_si_conc6 = da_si.sel(date=day6)
+    ax7.scatter(day6, min_si_conc6, s=100, c=awi_c, edgecolors='k',
                 marker='.', lw=0.5, zorder=80)
-    ax7.annotate(str(min_si_conc.values[0][0])[:5]+"$\%$ (6 Sep)",
-                 xytext=(forcing_date+td(days=15), 55),
-                 xy=(forcing_date, min_si_conc), c=awi_c,
-                 fontsize=9, arrowprops=dict(arrowstyle="->", color = awi_c))
+    ax7.annotate(str(min_si_conc6.values[0][0])[:5]+"$\%$ (6 Sep)",
+                 xytext=(day6-td(days=100), 60),
+                 xy=(day6, min_si_conc6), c=awi_c,
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
+    min_si_conc12 = da_si.sel(date=day12)
+    ax7.scatter(day12, min_si_conc12, s=100, c=awi_c, edgecolors='k',
+                marker='.', lw=0.5, zorder=80)
+    ax7.annotate(str(min_si_conc12.values[0][0])[:5]+"$\%$ (12 Sep)",
+                 xytext=(day12+td(days=5), 60),
+                 xy=(day12, min_si_conc12), c=awi_c,
+                 fontsize=9, arrowprops=dict(arrowstyle="->", color=awi_c))
 
     # Fix labels
     for ax in [ax1, ax2, ax7]:
@@ -291,12 +343,12 @@ def plot_atm_and_ice():
     # Grids (for the time series)
     ax1.grid()
     ax2.grid()
-    ax7.grid()          
+    ax7.grid()
 
     # Plot ice
     land_50m = feature.NaturalEarthFeature(
         'physical', 'land', '50m', edgecolor='black', facecolor='white')
-    for i, ax in enumerate([ax3, ax4, ax5, ax6, ax8]):
+    for i, ax in enumerate([ax3, ax4, ax5, ax6, ax8, ax9, ax10]):
         ax.add_feature(land_50m, color='w')
         ax.coastlines(resolution='50m')
         ds_tmp = ds.sel(
@@ -306,8 +358,11 @@ def plot_atm_and_ice():
         da = ds_tmp['ice_conc']
         c = ax.pcolormesh(da['lon'], da['lat'], da, cmap=cmocean.cm.ice,
             transform=ccrs.PlateCarree(), rasterized=True)
-        ax.set_title(titles[i][0], fontsize=12)#, pad=-0.1)
-        ax.set_extent([-80, 0, -80, -50], crs=ccrs.PlateCarree())
+        ax.set_title(titles[i][0], fontsize=12, pad=1)
+        if ax==ax8 or ax==ax9 or ax==ax10:
+            ax.set_extent([-80, 0, -72, -59], crs=ccrs.PlateCarree())
+        else:
+            ax.set_extent([-80, 0, -80, -50], crs=ccrs.PlateCarree())
 
         # Adding grid lines
         gl = ax.gridlines(draw_labels=True, dms=False, x_inline=False,
@@ -319,8 +374,10 @@ def plot_atm_and_ice():
         gl.top_labels = False
         if ax==ax3 or ax==ax4 or ax==ax5:
             gl.right_labels=False
-        if ax==ax4 or ax==ax5 or ax==ax6 or ax==ax8:
+        if ax==ax4 or ax==ax5 or ax==ax6 or ax==ax8 or ax==ax9 or ax==ax10:
             gl.left_labels=False
+        if ax==ax8 or ax==ax9:
+            gl.bottom_labels=False
 
         # Mark mooring location
         ax.scatter(-27.0048333, -69.0005000, s=100, c='w',
@@ -329,9 +386,12 @@ def plot_atm_and_ice():
                    label='Mooring\n27.0° W\n69.0° S')
 
     # Change border colour
-    ax8.tick_params(color=other_c, labelcolor=other_c)
-    for spine in ax8.spines.values():
+    for spine in ax9.spines.values():
         spine.set_edgecolor(other_c)
+        spine.set_linestyle('solid')
+    for spine in ax10.spines.values():
+        spine.set_edgecolor(other_c)
+        spine.set_linestyle('dashed')
 
     # Add sea ice concentration colourbar
     cbar_ax = fig.add_axes([0.23, 0.1, 0.45, 0.02])
@@ -346,12 +406,12 @@ def plot_atm_and_ice():
 
     # Annotate panel letters
     bb = dict(facecolor='white', edgecolor='black', boxstyle='circle,pad=0.1')
-    labs = {ax1: 'a', ax2: 'b', ax7: 'c', ax8: 'd', ax3: 'e', ax4: 'f',
-            ax5: 'g', ax6: 'h'}
+    labs = {ax1: 'a', ax2: 'b', ax7: 'c', ax8: 'd', ax9: 'e', ax10: 'f',
+            ax3: 'g', ax4: 'h', ax5: 'i', ax6: 'j'}
     for ax in [ax1, ax2, ax7]:
         ax.text(0.02, 0.9, labs[ax], transform=ax.transAxes, fontsize=12,
                 fontweight='bold', va='top', ha='left', bbox=bb, zorder=120)
-    for ax in [ax3, ax4, ax5, ax6, ax8]:
+    for ax in [ax3, ax4, ax5, ax6, ax8, ax9, ax10]:
         ax.text(0.08, 0.95, labs[ax], transform=ax.transAxes, fontsize=12,
                 fontweight='bold', va='top', ha='left', bbox=bb, zorder=120)
 
