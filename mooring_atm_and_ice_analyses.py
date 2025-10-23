@@ -418,7 +418,7 @@ def plot_atm_and_ice():
     # Final stuff and saving
     plt.subplots_adjust(top=0.92, right=0.92, left=0.15, bottom=0.1,
                         hspace=0.35, wspace=0.15)
-    plt.savefig('figure_mooring_atm_and_ice.svg', transparent=False)
+    plt.savefig('figure_mooring_atm_and_ice.svg', transparent=True)
 
 
 if __name__ == "__main__":

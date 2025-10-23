@@ -7,3 +7,5 @@ __pycache__/
 *.svg
 *.pdf
 *.nc
+
+old_figs_and_scripts/*
