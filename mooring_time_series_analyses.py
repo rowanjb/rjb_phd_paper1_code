@@ -251,7 +251,7 @@ def plot_mooring_time_series(ds):
     ds['sigma0'] = gsw.sigma0(ds['SA'], ds['CT'])
 
     # Colours and other misc
-    T_min, T_max = -1.8, 1
+    T_min, T_max = -1.8, -0.2
     S_min, S_max = 34.61, 34.79
     sigma0_min, sigma0_max = 27.735, 27.787
     T_cmap = mpl.colormaps['Blues_r']
@@ -338,10 +338,10 @@ def plot_mooring_time_series(ds):
             delta=delta)
         new_da = xr.DataArray(da_filtered, {'time': da['time']})
         new_da = new_da.sel(
-            time=slice(datetime(2021, 8, 1), datetime(2021, 9, 21)))
+            time=slice(datetime(2021, 9, 1), datetime(2021, 9, 21)))
         colour = cmap_query[d]
         p, = new_da.plot(ax=ax, c=colour, lw=1, label=d)
-        ax.set_xlim(datetime(2021, 8, 1), datetime(2021, 9, 21))
+        ax.set_xlim(datetime(2021, 9, 1), datetime(2021, 9, 21))
         return p
 
     # ax4: temperature ROC
