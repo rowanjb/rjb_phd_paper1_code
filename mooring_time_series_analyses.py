@@ -157,7 +157,7 @@ def correct_mooring_salinities(ds):
 
     # Calculate the mean salinites
     S = ds['S']  # Extract as a dataarray for easy handling
-    # S_srfce_mean_mooring = S.sel(depth=-50).mean(dim='time').values
+    S_srfce_mean_mooring = S.sel(depth=-50).mean(dim='time').values
     S_upper_mean_mooring = S.sel(depth=-125).mean(dim='time').values
     S_lower_mean_mooring = S.sel(depth=-220).mean(dim='time').values
 
@@ -182,15 +182,15 @@ def correct_mooring_salinities(ds):
     woa_weighted_mean = ds_woa_weighted.mean('month')
 
     # Get the WOA salinities at the correct depths
-    # S_srfce_mean_woa = woa_weighted_mean.interp(depth=50).values
+    S_srfce_mean_woa = woa_weighted_mean.interp(depth=50).values
     S_upper_mean_woa = woa_weighted_mean.interp(depth=125).values
     S_lower_mean_woa = woa_weighted_mean.interp(depth=220).values
 
     # "Correct" the mooring salinities
-    # S_srfce_mean_anomaly = S_srfce_mean_mooring-S_srfce_mean_woa
+    S_srfce_mean_anomaly = S_srfce_mean_mooring-S_srfce_mean_woa
     S_upper_mean_anomaly = S_upper_mean_mooring-S_upper_mean_woa
     S_lower_mean_anomaly = S_lower_mean_mooring-S_lower_mean_woa
-    # S = xr.where(S['depth'] == -50, S.sel(depth=-50)-S_srfce_mean_anomaly, S)
+    S = xr.where(S['depth'] == -50, S.sel(depth=-50)-S_srfce_mean_anomaly, S)
     S = xr.where(S['depth'] == -125, S.sel(depth=-125)-S_upper_mean_anomaly, S)
     S = xr.where(S['depth'] == -220, S.sel(depth=-220)-S_lower_mean_anomaly, S)
 

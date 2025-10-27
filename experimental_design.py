@@ -1,5 +1,5 @@
 # General script for preparing my suite of MITgcm experiments.
-# Ultimately, I am referring to the preparation of binary files
+# Ultimately, I am here referring to the preparation of binary files
 # for initialising my simulations.
 
 import mooring_time_series_analyses as mtsa
@@ -44,44 +44,65 @@ def initial_profiles(ds):
     # Consider that we only have 3 data points: 1 in the ML, 1 beneath
     # the pycnocline, and 1 either just above, within, or just below the
     # pycnocline. We can create a simple suite of profiles by varying
-    # only the slope of the 'clines.
+    # only the slope of the 'clines if we assume three basic "layers" (
+    # the ML, the pycnocline, and the CDW)
     ds = ds.sel(depth=[-50, -125, -220])
     ds['sigma0'] = gsw.sigma0(ds['SA'], ds['CT'])
-    ds = ds.sel(time=slice(dt(2021, 9, 12), dt(2021, 9, 13)))
+    ds = ds.sel(time=slice(dt(2021, 9, 8), dt(2021, 9, 9)))
 
-    def density_profiles(da, pd_grad, depth):
-        '''Describe a piecewise function giving density at a specified
-        depth. Pycnocline angle is specified by the vertical potential
-        density gradient, e.g., -0.01. Depth is negative.'''
+    def three_layer_profiles(da, p_grad, depth):
+        '''Describe a piecewise function giving a profile at a specified
+        depth. Angle is specified by the vertical gradient, e.g., -0.01.
+        Depth is negative.'''
 
-        # Known potential densities
-        pd1, pd2, pd3 = da.values
+        # Known values
+        p1, p2, p3 = da.values
 
-        # Linear function of pycnocline, of form depth pd_grad + b = sigma0
-        b = pd2 - (-125*pd_grad)
-        new_pd = b + (depth*pd_grad)
+        # Linear function of 'cline, of form depth p_grad + b = sigma0
+        b = p2 - (-125*p_grad)
+        new_p = b + (depth*p_grad)
 
-        if new_pd < pd1:
-            new_pd = pd1
-        elif new_pd > pd3:
-            new_pd = pd3
+        if new_p < p1:
+            new_p = p1
+        elif new_p > p3:
+            new_p = p3
 
-        return new_pd
+        return new_p
 
-    da = ds['sigma0'].mean('time')
+    # Since one question that we're interested in is the effect of the
+    # relative T and S gradients, this is what we'll vary. This will
+    # cause a ballooning in the pot dens profile.
+    da_SA = ds['SA'].mean('time')
+    da_pt = ds['pt'].mean('time')
+    da_sigma0 = ds['sigma0'].mean('time')
 
     fig, ax = plt.subplots()
-    ax.scatter(da, da['depth'])
+    ax.scatter(da_SA, da_SA['depth'], c='black')
+    ax2 = ax.twiny()
+    ax2.scatter(da_pt, da_pt['depth'], c='red', marker='x')
+    ax3 = ax.twiny()
+    ax3.scatter(da_sigma0, da_sigma0['depth'], c='blue', marker='.')
+
+    # N2S: You'll want to possibly test if this holds for these grads or
+    # for these ratios
+    SA_grads = [-0.003]
+    pt_grads = [-0.02]
 
     depths = np.arange(-2, -396, -2)
-    for pd_grad in [-0.00025, -0.0005, -0.00075, -0.001, -0.00125, -0.0015]:
-        new_pds = []
+    for n, SA_grad in enumerate(SA_grads):
+        pt_grad = pt_grads[n]
+        new_SAs, new_pts, new_simga0s = [], [], []
         for d in depths:
-            new_pds.append(density_profiles(da, pd_grad, d))
-        ax.plot(new_pds, depths, label=str(pd_grad))
-    ax.grid()
-    ax.legend()
-    plt.savefig('test.png')
+            new_SA = three_layer_profiles(da_SA, SA_grad, d)
+            new_pt = three_layer_profiles(da_pt, pt_grad, d)
+            CT = gsw.CT_from_pt(new_SA, new_pt)
+            new_SAs.append(new_SA)
+            new_pts.append(new_pt)
+            new_simga0s.append(gsw.sigma0(new_SA, CT))
+        ax3.plot(new_simga0s, depths, label=str(pt_grad), c='blue')
+        ax.plot(new_SAs, depths, label=str(SA_grad), c='black')
+        ax2.plot(new_pts, depths, label=str(pt_grad), c='red')
+    plt.savefig('test.png', dpi=1200)
 
 
 if __name__ == "__main__":
