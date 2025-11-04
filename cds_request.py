@@ -7,6 +7,7 @@ dataset = "reanalysis-era5-single-levels"
 request = {
     "product_type": ["reanalysis"],
     "variable": [
+        "surface_pressure",
         "surface_latent_heat_flux",
         "surface_net_solar_radiation",
         "surface_sensible_heat_flux",

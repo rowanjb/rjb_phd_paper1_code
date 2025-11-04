@@ -12,8 +12,6 @@
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-import matplotlib.path as mpath
-import matplotlib.patches as mpatches
 import matplotlib.ticker as mticker
 from datetime import datetime as dt
 from datetime import timedelta as td
@@ -82,7 +80,7 @@ def sea_ice_conc_nc(start_date_str, end_date_str):
                'URL:': url})
 
     # Loop through the .hdf files, create a dataset, and combine it with ds
-    for n,fp in enumerate(filepaths):
+    for n, fp in enumerate(filepaths):
         ice_hdf = SD(fp, SDC.READ)
         ice_data = ice_hdf.select('ASI Ice Concentration').get()
         ice_hdf.end()
@@ -124,7 +122,8 @@ def select_nearest_coord(latitude, longitude):
     lonLat_Arc_hdf.end()
 
     # Because the grid from AWI is 0-360
-    if longitude<0: longitude = longitude + 360
+    if longitude < 0:
+        longitude = longitude + 360
 
     # Credit: (https://stackoverflow.com/questions/69556412/
     #          with-a-dataframe-that-contains-coordinates-find-other-

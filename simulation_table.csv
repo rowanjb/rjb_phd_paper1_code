@@ -1,0 +1,28 @@
+runid=mrb_084, dx=2m, dr=2m, dt=2s, Nx=198, Ny=198, Nr=198, tiles=9x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Baseline
+
+runid=mrb_085, dx=4m, dr=4m, dt=4s, Nx=99,  Ny=99,  Nr=99,  tiles=9x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Lower resolution and bigger timestep -> Similar results to mrb_084
+
+runid=mrb_086, dx=4m, dr=4m, dt=4s, Nx=99,  Ny=198, Nr=99,  tiles=9x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Wider domain in cross-lead axis (to test boundary effects) -> Compare to mrb_085
+
+runid=mrb_087, dx=4m, dr=4m, dt=4s, Nx=99,  Ny=99, Nr=99,  tiles=9x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=0W,    sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> No heat forcing; only salt -> Compare to mrb_085
+
+runid=mrb_088, dx=4m, dr=4m, dt=4s, Nx=66,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Wider domain in cross-lead axis (to test boundary effects) -> Compare to mrb_085, mrb_086
+
+runid=mrb_089, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Wider domain in cross-lead axis (to test boundary effects) -> Compare to mrb_085, mrb_086, mrb_088
+
+runid=mrb_090, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(3_layers_with_jump),
+-> Build a jump into the initial conditions to better match the obs -> Compare to mrb_089, mooring
+
+runid=mrb_091, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4,   viscAz=0,     viscAh=0,     diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Back to normal initial conditions; increased viscC2Smag and freezing rate (justified because we have pretty ideal conditions without ridging and seasonal/cyclical effects etc) -> Compare to mrb_090, mooring
+
+
+Future tests:
+High resolution and different (more sophisticated) mixing; email Cat and talk to Martin
+

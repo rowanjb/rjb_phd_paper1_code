@@ -278,18 +278,18 @@ def plot_mooring_time_series(ds):
     sigma0_ticks = [27.735, 27.752, 27.769, 27.787]
     sigma0_labels = ['27.735', '27.752', '27.769', '27.787']
 
-    def plotter(da, ax, norm, cmap, levels=150, add_colorbar=False):
+    def plotter(da, ax, norm, cmap, levels=20, add_colorbar=False):
         # For plotting the Hovmoellers
         # Not to self: Can't filter the turbulence because you loose
         # the visual of how deep the plume goes
-        p1 = da.plot.contour(
-            'time', 'depth', ax=ax, levels=levels, norm=norm,
-            add_colorbar=add_colorbar, cmap=cmap, zorder=1)
-        p2 = da.plot.contourf(
+        # p = da.plot.contour(
+        #    'time', 'depth', ax=ax, levels=levels, norm=norm,
+        #    add_colorbar=add_colorbar, cmap=cmap, zorder=1)
+        p1 = da.plot.contourf(
             'time', 'depth', ax=ax, levels=levels, norm=norm,
             add_colorbar=add_colorbar, cmap=cmap, zorder=1,
             rasterized=True)
-        return p1, p2
+        return p1
 
     def spec_line(da, ax, value, minmax=False):
         # Add a specific line to show plume behavious
@@ -305,7 +305,7 @@ def plot_mooring_time_series(ds):
 
     # ax1: temperature
     da = ds['T'].sel(depth=[-50, -125, -220])
-    p1a, p1b = plotter(da, ax1, T_norm, T_cmap)
+    p1a = plotter(da, ax1, T_norm, T_cmap)
     spec_line(da, ax1, T_min, minmax=True)
     spec_line(da, ax1, -1.3)
     spec_line(da, ax1, T_max, minmax=True)
@@ -313,7 +313,7 @@ def plot_mooring_time_series(ds):
 
     # ax2: salinity
     da = ds['SA'].sel(depth=[-50, -125, -220])
-    p2a, p2b = plotter(da, ax2, S_norm, S_cmap)
+    p2a = plotter(da, ax2, S_norm, S_cmap)
     spec_line(da, ax2, S_min, minmax=True)
     spec_line(da, ax2, 34.65)
     spec_line(da, ax2, S_max, minmax=True)
@@ -321,7 +321,7 @@ def plot_mooring_time_series(ds):
 
     # ax3: potential density
     da = ds['sigma0'].sel(depth=[-50, -125, -220])
-    p3a, p3b = plotter(da, ax3, sigma0_norm, sigma0_cmap)
+    p3a = plotter(da, ax3, sigma0_norm, sigma0_cmap)
     spec_line(da, ax3, sigma0_min, minmax=True)
     spec_line(da, ax3, 27.75)
     spec_line(da, ax3, sigma0_max, minmax=True)
@@ -347,12 +347,8 @@ def plot_mooring_time_series(ds):
     # ax4: temperature ROC
     pT5 = savgol_plotter(ds, 'T', -220, ax4)
     label5 = "220 m (T, S)"
-    pT4 = savgol_plotter(ds, 'T', -170, ax4)
-    label4 = "170 m (T)"
     pT3 = savgol_plotter(ds, 'T', -125, ax4)
     label3 = "125 m (T, S)"
-    pT2 = savgol_plotter(ds, 'T', -90, ax4)
-    label2 = "90 m (T)"
     pT1 = savgol_plotter(ds, 'T', -50, ax4)
     label1 = "50 m (T, S)"
 
@@ -367,8 +363,8 @@ def plot_mooring_time_series(ds):
         ax.set_xlabel('')
         ax.grid(zorder=3)
         ax.set_ylim(-220, -50)
-    ax1.set_yticks([-50, -90, -125, -170, -220])
-    ax1.set_yticklabels(["50 m", "90 m", "125 m", "170 m", "220 m"])
+    ax1.set_yticks([-50, -125, -220])
+    ax1.set_yticklabels(["50 m", "125 m", "220 m"])
     for ax in [ax2, ax3]:
         ax.set_yticks([-50, -125, -220])
         ax.set_yticklabels(["", "", ""])  # ["50 m", "125 m", "220 m"]
@@ -409,8 +405,8 @@ def plot_mooring_time_series(ds):
             sigma0_ticks, sigma0_labels)
 
     # Legend
-    handles = [pT1, pT2, pT3, pT4, pT5]
-    labels = [label1, label2, label3, label4, label5]
+    handles = [pT1, pT3, pT5]
+    labels = [label1, label3, label5]
     ax4.legend(
         handles, labels, loc='center', bbox_to_anchor=(1.15, -0.3),
         bbox_transform=ax4.transAxes,
@@ -471,4 +467,8 @@ if __name__ == "__main__":
     ds = open_mooring_data()
     ds = correct_mooring_salinities(ds)
     ds = append_gsw_vars(ds)
+
+    # I slice the dates here so that the final svg is smaller
+    ds = ds.sel(time=slice(datetime(2021, 8, 1), datetime(2021, 11, 30)))
+
     plot_mooring_time_series(ds)
