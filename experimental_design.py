@@ -3,9 +3,9 @@
 # for initialising my simulations.
 
 import mooring_time_series_analyses as mtsa
+import cell_thickness_calculator as ctc
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
-import xarray as xr
 import numpy as np
 import gsw
 import xmitgcm
@@ -79,7 +79,7 @@ import xmitgcm.utils
 # Consider a conservative assumed 10 cm of growth in one day,
 # with a drop in PSU from ~35 to ~10; this gives us
 # (1m)*(1m)*(0.1m/day)*(25kg/m3) = 2.5kg/day = 0.0289g/s (per m2).
-# Alternatively, Daley (Fig. 3.16, Eq. 8) offers an equation based on 
+# Alternatively, Daley (Fig. 3.16, Eq. 8) offers an equation based on
 # Stefan (1891), which is in German. Leppäranta (1993) gives an updated
 # overview of Stefan (1891), where:
 # ice thickness = sqrt(3.3^2 [sqrt(cm/C/d)] * FDD)
@@ -92,13 +92,28 @@ import xmitgcm.utils
 # salt rejection. Note that I will still use maximum cooling, because
 # as noted heat flux is regardless limited by the freezing point.
 
+def run_ctc():
+    """Run the cell thickness calculator in the case that variable
+    cell thicknesses are desired."""
+    Nr = 99  # Number of vertical cells
+    bottom = 396  # Depth of the bottom of the bottom cell
+    x1, x2 = 1, Nr  # Indices of top and bottom cells
+    fx1 = 1  # Depth of bottom of top cell (i.e., its thickness)
+    min_slope = 1  # i.e., with >1, then cell #2 is a bit thicker than #1
+    A, B, C, _, _ = ctc.find_parameters(x1, x2, fx1, bottom, min_slope)
+    dzs = ctc.return_cell_thicknesses(x1, x2, bottom, A, B, C)
+    print(dzs)
+    depths = np.cumsum(dzs).astype(float)
+    for i, n in enumerate(dzs):  # Getting cell centres
+        depths[i] = depths[i] - (n/2)
+    return (-1)*depths
 
 def initial_profiles(ds, Nx, Ny, Nr, dr):
     """Create initial T and S profiles based on the mooring.
     Parameters:
         ds: input dataset of mooring observations
         Nx, Ny, Nr: Grid points in each dimension
-        dr: Constant vertical spacing
+        dr: Constant vertical spacing or "variable"; see code for more
     Returns:
         Saves input binary for MITgcm"""
 
@@ -141,8 +156,13 @@ def initial_profiles(ds, Nx, Ny, Nr, dr):
 
         return p.values
 
-    # Calculate the profiles
-    depths = np.arange((-1)*dr, (-1)*(Nr+1)*dr, (-1)*dr)
+    # Calculate the depths of each cell
+    if dr == "variable":
+        depths = run_ctc()
+    else:  # Else, depths should be at the mid points of the cells
+        depths = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
+
+    # Calculate gsw variables
     SAs, pts, sigma0s = [], [], []
     for depth in depths:
         SA = linear_profiles(ds['SA'], depth)
@@ -170,10 +190,10 @@ def initial_profiles(ds, Nx, Ny, Nr, dr):
     # I've tested it against binaries that came in the verification runs
     xmitgcm.utils.write_to_binary(
         np.tile(pts, (Nx, Ny, 1)).flatten(order='F'),
-        'bin_init_pt_'+str(Nx)+'x'+str(Ny)+'x'+str(Nr)+'.bin')
+        'bin_init_pt_'+str(Nx)+'x'+str(Ny)+'x'+str(Nr)+'_'+str(dr)+'.bin')
     xmitgcm.utils.write_to_binary(
         np.tile(SAs, (Nx, Ny, 1)).flatten(order='F'),
-        'bin_init_SA_'+str(Nx)+'x'+str(Ny)+'x'+str(Nr)+'.bin')
+        'bin_init_SA_'+str(Nx)+'x'+str(Ny)+'x'+str(Nr)+'_'+str(dr)+'.bin')
 
 
 def initial_velocities(Nx, Ny, Nr, dr):
@@ -229,7 +249,7 @@ def forcing_Q(Nx, Ny, dx, lead_width):
         'bin_forc_Q_36x'+str(Nx)+'x'+str(Ny)+'_'+str(real_width)+'m_lead.bin')
 
 
-def forcing_salt(Nx, Ny, dx, lead_width):
+def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff):
     """We base our ice growth rate on Stefan's Law and use the
     coefficient (0.025) suggested by Cammaert and Muggeridge (1988).
     Leppäranta (1993) provides a good overview of Stefan's (1891)
@@ -241,11 +261,12 @@ def forcing_salt(Nx, Ny, dx, lead_width):
         dx: Grid spacing (m), assumed to be square cells
         lead_width: Lead width in m (assumed parallel opening)
             *lead width will get rounded to the nearest cell
+        stefan_coeff: Coefficient for Stefan's law
     Returns:
         Saves binary for MITgcm"""
 
     hours = np.arange(37)  # 36 hours plus 1 more for differentiation
-    ice_thickness = [0.037*np.sqrt(i*17.15/24) for i in hours]
+    ice_thickness = [stefan_coeff*np.sqrt(i*17.15/24) for i in hours]
     ice_growth = np.diff(ice_thickness)
 
     # But we only want one day of growth
@@ -276,10 +297,11 @@ def forcing_salt(Nx, Ny, dx, lead_width):
     # Note the order of axes and flattening; this setup seems to work
     xmitgcm.utils.write_to_binary(
         sf.flatten(order='C'),
-        'bin_forc_SA_36x'+str(Nx)+'x'+str(Ny)+'_'+str(real_width)+'m_lead.bin')
+        ('bin_forc_SA_36x'+str(Nx)+'x'+str(Ny)+'_'+str(real_width) +
+         'm_lead_'+str(stefan_coeff)[2:]+'.bin'))
 
 
-def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
+def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
     """Creates a non-paper quality figure showing the binaries."""
 
     fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(14, 14))
@@ -295,7 +317,8 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
     fig.colorbar(P, ax=ax[0][0])
 
     # S forcing
-    fp = "bin_forc_SA_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width)+"m_lead.bin"
+    fp = ("bin_forc_SA_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width) +
+          "m_lead_"+str(stefan_coeff)[2:]+".bin")
     Sf = xmitgcm.utils.read_raw_data(
         fp, shape=(36, Nx, Ny), dtype=np.dtype('>f4'))
     P = ax[0][1].pcolormesh(Sf[0, :, :])
@@ -344,7 +367,7 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
     fig.colorbar(P, ax=ax[1][2])
 
     # Potential temperature
-    fp = "bin_init_pt_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+".bin"
+    fp = "bin_init_pt_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+'_'+str(dr)+".bin"
     pt = xmitgcm.utils.read_raw_data(
          fp, shape=(Nr, Nx, Ny), dtype=np.dtype('>f4'))
     P = ax[2][0].pcolormesh(pt[:, :, int(Ny/2)])
@@ -354,7 +377,7 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
     fig.colorbar(P, ax=ax[2][0])
 
     # Absolute salinity
-    fp = "bin_init_SA_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+".bin"
+    fp = "bin_init_SA_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+'_'+str(dr)+".bin"
     SA = xmitgcm.utils.read_raw_data(
          fp, shape=(Nr, Nx, Ny), dtype=np.dtype('>f4'))
     P = ax[2][1].pcolormesh(SA[:, :, int(Ny/2)])
@@ -364,7 +387,10 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
     fig.colorbar(P, ax=ax[2][1])
 
     # Initial profiles
-    zcoord = np.linspace(int((-1)*dr/2), (-1)*Nr*dr-int((-1)*dr/2), Nr)
+    if dr == "variable":
+        zcoord = run_ctc()
+    else:  # Else, depths should be at the mid points of the cells
+        zcoord = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
     print(np.shape(zcoord))
     print(np.shape(pt))
     ax[2][2].plot(pt[:, int(Nx/2), int(Ny/2)], zcoord, c='r')
@@ -385,13 +411,15 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i):
 
 
 if __name__ == "__main__":
-    Nx, Ny, Nr, dr, lead_width, i = 33, 594, 99, 4, 100, "091"
+
+    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "094"
+    stefan_coeff = 0.037
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)
     ds = mtsa.append_gsw_vars(ds)
     initial_profiles(ds, Nx, Ny, Nr, dr)
     initial_velocities(Nx, Ny, Nr, dr)
     initial_eta(Nx, Ny)
-    forcing_Q(Nx, Ny, dr, lead_width)
-    forcing_salt(Nx, Ny, dr, lead_width)
-    plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i)
+    forcing_Q(Nx, Ny, dx, lead_width)
+    forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff)
+    plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff)
