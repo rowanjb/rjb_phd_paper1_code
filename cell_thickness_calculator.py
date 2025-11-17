@@ -1,7 +1,7 @@
 # This complete script is straight from ChatGPT (and it works perfectly!)
-# You can use it to parametrically define exponentially-increasing cell
-# thicknesses for a model of the form f(x)=A⋅e**(B⋅x)+C
-# Where you can specify
+# I use it to parametrically define exponentially-increasing cell
+# thicknesses (for a model) of the form f(x)=A⋅e**(B⋅x)+C
+# Where:
 #       x1          the first cell index, which should be 1 (i.e., the
 #                   surface cell)
 #       x2          the last cell index, e.g., 50 (i.e., the bottom cell)
