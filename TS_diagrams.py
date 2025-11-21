@@ -66,6 +66,7 @@ def plot_TS_diagram(fp, dt=4, dx=4):
     ax1.set_title("Mixing in model", fontsize=12)
     ax1.set_ylabel("Conservative temperature ($℃$)", fontsize=9)
     ax1.set_xlabel("Absolute salinity ($g$ $kg^{-1}$)", fontsize=9)
+    ax1.tick_params(axis='both', labelsize=9)
     plt.subplots_adjust(left=0.25, bottom=0.15)
     plt.savefig('figure_model_TS.png', dpi=1200)
 
