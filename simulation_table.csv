@@ -19,15 +19,72 @@ runid=mrb_089, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_widt
 runid=mrb_090, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.025), forcing_time=24h, total_time=36h, initial_conditions=mooring(3_layers_with_jump),
 -> Build a jump into the initial conditions to better match the obs -> Compare to mrb_089, mooring
 
-runid=mrb_091, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4,   viscAz=0,     viscAh=0,     diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+runid=mrb_091, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
 -> Back to normal initial conditions; increased viscC2Smag and freezing rate (justified because we have pretty ideal conditions without ridging and seasonal/cyclical effects etc) -> Compare to mrb_090, mooring
 
 runid=mrb_092, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-6, viscAh=1.E-6, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
 -> Back to normal initial conditions AND normal mixing/viscosities; only difference to mrb_089 is the stefan coeff -> Compare to mrb_089
 
-runid=mrb_093, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4,   viscAz=0,     viscAh=0,     diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+runid=mrb_093, dx=4m, dr=4m, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
 -> Back to normal initial conditions and smag2D=3.1 (i.e. normal) BUT different const. values -> Compare to mrb_091 and see what the output viscosities are (figure out if constants override visc2D or viceversa etc)
+
+runid=mrb_094, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Normal initial conditions etc BUT with variable vertical res -> Compare to mrb_093
+
+runid=mrb_095, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=1, viscAz=1.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing a low smag coefficient -> Compare to mrb_094
+
+runid=mrb_096, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=6, viscAz=1.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing a high smag coefficient -> CFL failure with both 5 and 6
+
+runid=mrb_097, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing a high vertical viscosity -> Compare to mrb_093
+
+runid=mrb_098, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=1.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33,   Q=0W, sf=0g/m2/s, forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> No forcing just looking at diffusvities from the advection scheme
+
+runid=mrb_099, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing smag 3D with the default coefficient
+
+runid=mrb_100, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-01, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing smag 3D with the increased coeff
+
+runid=mrb_101, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-03, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing smag 3D with the decreased coeff
+
+runid=mrb_102, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> Testing if the smaller domain affects the net HF -> compare with mrb_099
+
+runid=mrb_103, dx=4m, dr=vr, dt=4s, Nx=1,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 2D small domain
+
+runid=mrb_104, dx=4m, dr=vr, dt=4s, Nx=1,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 2D medium domain
+
+runid=mrb_105, dx=4m, dr=vr, dt=4s, Nx=1,  Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 2D wide domain
+
+runid=mrb_106, dx=4m, dr=vr, dt=4s, Nx=1,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 2D medium domain with U and V sponges
+
+runid=mrb_107, dx=4m, dr=vr, dt=4s, Nx=1,  Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 2D wide domain with U and V sponges
+
+runid=mrb_108, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 3D medium domain with U and V sponges
+
+runid=mrb_109, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 3D wide domain no sponges
+
+runid=mrb_110, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 3D wide domain with U and V sponges
+
+runid=mrb_111, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=0, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=36h, initial_conditions=mooring(4_layers),
+-> 3D small domain with U and V sponges
+
 
 Future tests:
 High resolution and different (more sophisticated) mixing; email Cat and talk to Martin
+
+
 

@@ -72,5 +72,5 @@ def plot_TS_diagram(fp, dt=4, dx=4):
 
 
 if __name__ == "__main__":
-    fp = '../MITgcm/so_plumes/mrb_108'
+    fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_099/'
     plot_TS_diagram(fp)

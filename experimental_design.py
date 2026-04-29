@@ -24,9 +24,9 @@ import xmitgcm.utils
 # 4) Domain needs to just be large enough that instabilities from the
 #    plume don't interact too much and don't feel bottom effects by
 #    the end of the simulation (could also go a sort of convergence
-#    test analogue);
-# 5) Resolution should be tested for congergence, but generally at
-#    2 m we're in the ballpark of the Taylor microscale (I think...);
+#    test analogue), also must consider internal waves;
+# 5) Resolution should be tested for convergence, but generally at
+#    2 or 4 m we're in the ballpark of the Taylor microscale (I think...);
 # 6) Time scale should capture the plume reaching maximum depth and
 #    subsequently rebounding (but again equilibrium is not reached);
 # 7) Ice opening/lead size is based on Muchow et al. (2021), i.e., in
@@ -41,7 +41,7 @@ import xmitgcm.utils
 #    does not actually exist (test this before claiming it though),
 #    and also it's just more accurate);
 # 12) Initial conditions: Stratification for some simulations is based
-#    on our mooring observations, taken as an over the days preceding
+#    on our mooring observations, taken as a mean over the days preceding
 #    the plume (i.e., preconditioning is already completed), and we
 #    follow Martinson (1990) by assuming that the mixed layer
 #    is homogenised down to a permanent, thin pycnocline
@@ -51,6 +51,7 @@ import xmitgcm.utils
 #    heat upwards); additional simulations with different thermocline/
 #    pycnocline slopes would also be a good idea
 # 13) Restoring sponges: Not really necessary for short-term simulations
+#    unless there are waves to damp
 
 
 # == Forcing time and forcing magnitude:
@@ -59,7 +60,7 @@ import xmitgcm.utils
 # flux be, (2) how much salt should be rejected into the upper layer of the
 # model, and (3) how should these forcings vary over time. Heat flux (1) is
 # simpler than salinity; if we limit the water to some freezing point,
-# then MITgcm will only impose heat flux until this temperature is
+# then MITgcm will only remove heat until this temperature is
 # reached, regardless of the flux in the forcing file (it is also less
 # important in terms of the N2, since we're in an alpha ocean). The
 # salt flux (2) is more difficult, since it is related to the rate of ice
@@ -67,7 +68,7 @@ import xmitgcm.utils
 # is useful here, including work by Perovich and Wadhams. E.g.,
 #  - Perovich and Richter-Menge (2000):
 #     - 15--20 cm growth in first few days of lead opening
-#     - Bulk salinity of the resultant ice ranges from 7.3 --25.1
+#     - Bulk salinity of the resultant ice ranges from 7.3--25.1
 #  - Wilkinson and Wadhams (2003):
 #     - Antarctic pancake salinity: 4 psu after 4 days
 #     - Alternatively modelled (frazil) as 18.3exp(-1.2/2)+1.5=11.5 PSU
@@ -84,13 +85,15 @@ import xmitgcm.utils
 # overview of Stefan (1891), where:
 # ice thickness = sqrt(3.3^2 [sqrt(cm/C/d)] * FDD)
 # With a temperature difference of ~-20 (based on ERA5) this gives
-# sqrt(3.3^2*20) = 14.76 cm, which they note is an ideal/upper bound on
+# sqrt(3.3^2*20) = 14.76 cm, which they note is an upper bound on
 # what might actually be expected. Daley discusses an updated "practical"
 # formulation from Cammaert and Muggeridge (1988): 0.025*sqrt(FDD)=11.18 cm.
+# Daley notes the ideal formulation is 0.037*sqrt(FDD)=16.54 cm.
 # Since these values are all roughly aligned, I will use Stefan's Law
-# (although I really wish I could read it) because (3) it gives a smooth
-# salt rejection. Note that I will still use maximum cooling, because
-# as noted heat flux is regardless limited by the freezing point.
+# (although I really wish I could read Stefan (18932)) because (3) it
+# gives a smooth salt rejection. Note that I will still use maximum
+# cooling, regardless of the freezing curve, because as noted heat
+# flux is regardless limited by the freezing point.
 
 def run_ctc():
     """Run the cell thickness calculator in the case that variable
@@ -102,11 +105,12 @@ def run_ctc():
     min_slope = 1  # i.e., with >1, then cell #2 is a bit thicker than #1
     A, B, C, _, _ = ctc.find_parameters(x1, x2, fx1, bottom, min_slope)
     dzs = ctc.return_cell_thicknesses(x1, x2, bottom, A, B, C)
-    print(dzs)
+    # print(dzs)
     depths = np.cumsum(dzs).astype(float)
     for i, n in enumerate(dzs):  # Getting cell centres
         depths[i] = depths[i] - (n/2)
     return (-1)*depths
+
 
 def initial_profiles(ds, Nx, Ny, Nr, dr):
     """Create initial T and S profiles based on the mooring.
@@ -173,6 +177,19 @@ def initial_profiles(ds, Nx, Ny, Nr, dr):
         pts.append(pt)
         sigma0s.append(sigma0)
 
+    # print("sRef=", end="")
+    # for i, val in enumerate([float(i) for i in SAs]):
+    #     print(f"{val:4f},", end="")
+    #     if (i + 1) % 10 == 0:
+    #         print("\n      ", end="")
+    # print("tRef=", end="")
+    # for i, val in enumerate([float(i) for i in pts]):
+    #     print(f"{val:4f},", end="")
+    #     if (i + 1) % 10 == 0:
+    #         print("\n      ", end="")
+    # print(len(pts))
+    # quit()
+
     # Plotting
     fig, ax = plt.subplots()
     ax.scatter(ds['SA'], ds['depth'], c='black')
@@ -217,7 +234,8 @@ def initial_eta(Nx, Ny):
         'bin_init_Eta_'+str(Nx)+'x'+str(Ny)+'.bin')
 
 
-def forcing_Q(Nx, Ny, dx, lead_width):
+def forcing_Q(Nx, Ny, dx, lead_width, forcing_time=24, integration_time=36,
+              lead_position='centre'):
     """For now we assume 1 day of forcing followed by the
     reorganization of layers. We let the forcing be some high value
     like 200 W/m2 (this is supported in the literature), because
@@ -231,25 +249,31 @@ def forcing_Q(Nx, Ny, dx, lead_width):
     Returns:
         Saves binary for MITgcm"""
 
-    Q = np.full(36, 200)
-    Q[25:] = 0
+    Q = np.full(integration_time, 200)
+    Q[forcing_time+1:] = 0
 
     # Now we can save this as a 3D binary
     # Note we init with 0.0 because we want floats not ints
-    Qf = np.full((36, Nx, Ny), 0.0)  # Array of salt flux rates
+    Qf = np.full((integration_time, Nx, Ny), 0.0)  # Array of salt flux rates
     lead_cells = int(np.floor(lead_width/dx))  # Width of the lead in cells
     real_width = int(lead_cells*dx)  # Useful when saving, maybe
-    left_coord = int(np.ceil((Ny-lead_cells)/2))
-    right_coord = left_coord+lead_cells
+    if lead_position == 'centre':
+        left_coord = int(np.ceil((Ny-lead_cells)/2))
+        right_coord = left_coord+lead_cells
+    if lead_position == 'side':
+        left_coord = int(np.ceil((Ny-lead_cells)))
+        right_coord = left_coord+lead_cells
     for n, heat_flux in enumerate(Q):
         Qf[n, :, left_coord:right_coord] = heat_flux
     # Note the order of axes and flattening; this setup seems to work
     xmitgcm.utils.write_to_binary(
         Qf.flatten(order='C'),
-        'bin_forc_Q_36x'+str(Nx)+'x'+str(Ny)+'_'+str(real_width)+'m_lead.bin')
+        ('bin_forc_Q_'+str(integration_time)+'x'+str(Nx)+'x'+str(Ny) +
+         '_'+str(real_width)+'m_lead.bin'))
 
 
-def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff):
+def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
+                 integration_time=36, lead_position='centre'):
     """We base our ice growth rate on Stefan's Law and use the
     coefficient (0.025) suggested by Cammaert and Muggeridge (1988).
     Leppäranta (1993) provides a good overview of Stefan's (1891)
@@ -265,12 +289,13 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff):
     Returns:
         Saves binary for MITgcm"""
 
-    hours = np.arange(37)  # 36 hours plus 1 more for differentiation
+    # e.g., 36 hours plus 1 more for differentiation
+    hours = np.arange(integration_time+1)
     ice_thickness = [stefan_coeff*np.sqrt(i*17.15/24) for i in hours]
     ice_growth = np.diff(ice_thickness)
 
     # But we only want one day of growth
-    ice_growth[25:] = 0
+    ice_growth[forcing_time+1:] = 0
 
     # Note if we assume 30 PSU are rejected, then we can calculate flux
     # 1m x 1m x [growth rate] m/hr x 30 kg/m3 = [salt flux] kg/hr
@@ -287,29 +312,35 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff):
 
     # Now we can save this as a 3D binary
     # Note we init with 0.0 because we want floats not ints
-    sf = np.full((36, Nx, Ny), 0.0)  # Array of salt flux rates
+    sf = np.full((integration_time, Nx, Ny), 0.0)  # Array of salt flux rates
     lead_cells = int(np.floor(lead_width/dx))  # Width of the lead in cells
     real_width = int(lead_cells*dx)  # Useful when saving, maybe
-    left_coord = int(np.ceil((Ny-lead_cells)/2))
-    right_coord = left_coord+lead_cells
+    if lead_position == 'centre':
+        left_coord = int(np.ceil((Ny-lead_cells)/2))
+        right_coord = left_coord+lead_cells
+    elif lead_position == 'side':
+        left_coord = int(np.ceil((Ny-lead_cells)))
+        right_coord = left_coord+lead_cells
     for n, salt_rejection_rate in enumerate(salt_rejection):
         sf[n, :, left_coord:right_coord] = (-1)*salt_rejection_rate
     # Note the order of axes and flattening; this setup seems to work
     xmitgcm.utils.write_to_binary(
         sf.flatten(order='C'),
-        ('bin_forc_SA_36x'+str(Nx)+'x'+str(Ny)+'_'+str(real_width) +
-         'm_lead_'+str(stefan_coeff)[2:]+'.bin'))
+        ('bin_forc_SA_'+str(integration_time)+'x'+str(Nx)+'x'+str(Ny) +
+         '_'+str(real_width)+'m_lead_'+str(stefan_coeff)[2:]+'.bin'))
 
 
-def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
+def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
+                            integration_time):
     """Creates a non-paper quality figure showing the binaries."""
 
     fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(14, 14))
 
     # Q forcing
-    fp = "bin_forc_Q_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width)+"m_lead.bin"
+    fp = ("bin_forc_Q_"+str(integration_time)+"x"+str(Nx)+"x"+str(Ny) +
+          "_"+str(lead_width)+"m_lead.bin")
     Q = xmitgcm.utils.read_raw_data(
-        fp, shape=(36, Nx, Ny), dtype=np.dtype('>f4'))
+        fp, shape=(integration_time, Nx, Ny), dtype=np.dtype('>f4'))
     P = ax[0][0].pcolormesh(Q[0, :, :])
     ax[0][0].set_title("TFLUX at $t=0$ ($W$)")
     ax[0][0].set_xlabel("X cells")
@@ -317,10 +348,10 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
     fig.colorbar(P, ax=ax[0][0])
 
     # S forcing
-    fp = ("bin_forc_SA_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width) +
-          "m_lead_"+str(stefan_coeff)[2:]+".bin")
+    fp = ("bin_forc_SA_"+str(integration_time)+"x"+str(Nx)+"x"+str(Ny) +
+          "_"+str(lead_width)+"m_lead_"+str(stefan_coeff)[2:]+".bin")
     Sf = xmitgcm.utils.read_raw_data(
-        fp, shape=(36, Nx, Ny), dtype=np.dtype('>f4'))
+        fp, shape=(integration_time, Nx, Ny), dtype=np.dtype('>f4'))
     P = ax[0][1].pcolormesh(Sf[0, :, :])
     ax[0][1].set_title("SFLUX at $t=0$ ($g/m^{2}/s$)")
     ax[0][1].set_xlabel("X cells")
@@ -410,9 +441,104 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
     plt.savefig("binary_overview_"+i+".png")
 
 
+def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
+    """Deleteable"""
+
+    cm = 1/2.54  # Inches to centimeters
+    layout = [
+        ['a1', 'a1', 'a1', 'a1', '.', 'a2', 'a2', 'a2', 'a2', '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a1', 'a1', 'a1', 'a1', '.', 'a2', 'a2', 'a2', 'a2', '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],]
+    fig, ad = plt.subplot_mosaic(layout)
+    ax1, ax2, ax3 = ad['a1'], ad['a2'], ad['a3']
+    ax4, ax5 = ad['a4'], ad['a5']
+    fig.set_figwidth(22*cm)
+    fig.set_figheight(5*cm)
+
+    # Q forcing
+    fp = "bin_forc_Q_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width)+"m_lead.bin"
+    Q = xmitgcm.utils.read_raw_data(
+        fp, shape=(36, Nx, Ny), dtype=np.dtype('>f4'))
+    ax1.plot(Q[:, int(Nx/2), int(Ny/2)], c='k')
+    ax1.set_title("Heat flux, $q_{out}$\n($W$ $m^{-2}$)", fontsize=12)
+    ax1.set_ylabel("")
+    ax1.set_xlabel("")
+
+    # S forcing
+    fp = ("bin_forc_SA_36x"+str(Nx)+"x"+str(Ny)+"_"+str(lead_width) +
+          "m_lead_"+str(stefan_coeff)[2:]+".bin")
+    Sf = xmitgcm.utils.read_raw_data(
+        fp, shape=(36, Nx, Ny), dtype=np.dtype('>f4'))
+    ax2.plot(Sf[:, int(Nx/2), int(Ny/2)], c='k')
+    ax2.set_title("Salt flux, $s_{in}$\n($g$ $m^{-2}$ $s^{-1}$)", fontsize=12)
+    ax2.set_ylabel("")
+    ax2.set_xlabel("")
+
+    # Potential temperature
+    fp = "bin_init_pt_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+'_'+str(dr)+".bin"
+    pt = xmitgcm.utils.read_raw_data(
+         fp, shape=(Nr, Nx, Ny), dtype=np.dtype('>f4'))
+
+    # Absolute salinity
+    fp = "bin_init_SA_"+str(Nx)+"x"+str(Ny)+"x"+str(Nr)+'_'+str(dr)+".bin"
+    SA = xmitgcm.utils.read_raw_data(
+         fp, shape=(Nr, Nx, Ny), dtype=np.dtype('>f4'))
+
+    # Initial profiles
+    if dr == "variable":
+        zcoord = run_ctc()
+    else:  # Else, depths should be at the mid points of the cells
+        zcoord = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
+
+    ax3.plot(pt[:, int(Nx/2), int(Ny/2)], zcoord, c='k')
+    ax3.set_title("Pot. temp., \n"+r"$\theta$"+" ($℃$)", fontsize=12)
+    ax3.set_xlabel("")
+    ax3.set_ylabel("")
+
+    ax4.plot(SA[:, int(Nx/2), int(Ny/2)], zcoord, c='k')
+    ax4.set_xlabel("")
+    ax4.set_ylabel("")
+    ax4.set_title("Abs. sal.\n($g$ $kg^{-1}$)", fontsize=12)
+
+    CT = gsw.CT_from_pt(SA[:, int(Nx/2), int(Ny/2)],
+                        pt[:, int(Nx/2), int(Ny/2)])
+    ax5.plot(gsw.sigma0(SA[:, int(Nx/2), int(Ny/2)], CT), zcoord, c='k')
+    ax5.set_title(("Pot. dens., \n"+r"$\sigma_0$"+" ($kg$ $m^{-3}$)"),
+                  fontsize=12)
+    ax5.set_xlabel("")
+
+    sl = slice(dt(2021, 9, 12, 12), dt(2021, 9, 13, 12))
+    da = ds['pt'].sel(time=sl).mean('time').sel(depth=[-50, -125, -220])
+    ax3.scatter(da.values, da['depth'], c='k')
+    da = ds['SA'].sel(time=sl).mean('time').sel(depth=[-50, -125, -220])
+    ax4.scatter(da.values, da['depth'], c='k')
+    ds['sigma0'] = gsw.sigma0(ds['SA'], ds['CT'])
+    da = ds['sigma0'].sel(time=sl).mean('time').sel(depth=[-50, -125, -220])
+    ax5.scatter(da.values, da['depth'], c='k')
+
+    for ax in [ax3, ax4, ax5]:
+        ax.set_yticks([0, -50, -125, -220, -396])
+        ax.set_yticklabels(['', '', '', '', ''])
+        ax.set_ylim(-396, 0)
+        # ax.xaxis.tick_top()
+    ax3.set_yticklabels(['0 m', '50 m', '125 m', '220 m', '396 m'])
+    for ax in [ax1, ax2, ax3, ax4, ax5]:
+        ax.tick_params(axis='both', labelsize=9)
+    for ax in [ax1, ax2]:
+        ax.set_xticks([0, 24])
+        ax.set_xticklabels(["Sep 13,\n12:00", "Sep 14\n12:00"])
+
+    ax3.set_xlim(-2.25, 1.3)
+    ax4.set_xlim(34.5, 34.95)
+    ax5.set_xlim(27.74, 27.84)
+
+    plt.subplots_adjust(hspace=0.4, wspace=0.3, bottom=0.18, top=0.78)
+    plt.savefig("science_week_forcings.svg", transparent=True)
+
+
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "094"
+    Nx, Ny, Nr, dx, dr, lead_width, i = 66, 594, 99, 4, 'variable', 100, "118"
+    forcing_time, integration_time, lead_position = 24, 36, 'centre'
     stefan_coeff = 0.037
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)
@@ -420,6 +546,10 @@ if __name__ == "__main__":
     initial_profiles(ds, Nx, Ny, Nr, dr)
     initial_velocities(Nx, Ny, Nr, dr)
     initial_eta(Nx, Ny)
-    forcing_Q(Nx, Ny, dx, lead_width)
-    forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff)
-    plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff)
+    forcing_Q(Nx, Ny, dx, lead_width, forcing_time, integration_time,
+              lead_position)
+    forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time,
+                 integration_time, lead_position)
+    plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
+                            integration_time)
+    # science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff)

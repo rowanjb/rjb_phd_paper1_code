@@ -90,35 +90,176 @@ def plot_surface():
     """Temporary"""
 
     ds = xmitgcm.open_mdsdataset(
-        "../MITgcm/so_plumes/mrb_092",
+        "/albedo/work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_092/",
         prefix=['S', 'T'],
         delta_t=4,
         ref_date="2021-9-13 12:0:0")
 
     fig, ax = plt.subplots()
-    fig.set_figheight(1)
-    fig.set_figwidth(8)
-    c = ds['T'].isel(time=2, Z=0).plot.contourf(
+    fig.set_figheight(4)
+    fig.set_figwidth(4)
+    c = ds['T'].isel(time=2, XC=297).plot.contourf(
         Y='Z', levels=20, cmap='Blues_r', vmin=-2, vmax=0,
         add_colorbar=False)
     ax.set_title("")
     cbar = plt.colorbar(c, orientation='horizontal')
     cbar.ax.tick_params(labelsize=9)
-    cbar.ax.set_xlabel('Abs. salinity ($g$ $kg^{-1}$)',
-                       fontdict={'fontsize': '9'})
+    # cbar.ax.set_xlabel('Abs. salinity ($g$ $kg^{-1}$)',
+    #                    fontdict={'fontsize': '9'})
     ax.tick_params(axis='both', labelsize=9)
     ax.set_ylabel("")
     ax.set_xlabel("")
-    ax.set_yticks([0, 66, 132])  # -50, -125, -220, -396])
-    ax.set_yticklabels(["0 m", "66 m", "132 m"])  # ["50 m", "125 m", "220 m", "396 m"])
-    ax.set_xticks([])  # 0, 1138, 1238, 2376])
+    # ax.set_yticks([0, 66, 132])  # -50, -125, -220, -396])
+    # ax.set_yticklabels(["0 m", "66 m", "132 m"])  # ["50 m", "125 m", "220 m", "396 m"])
+    # ax.set_xticks([])  # 0, 1138, 1238, 2376])
     # ax.set_xticklabels(["0 km", "1.14 km", "1.24 km", "2.38 km"])
-    plt.savefig('old_figs_and_scripts/horiz_salt_srfc.svg',
+    plt.savefig('old_figs_and_scripts/horiz_temp_srfc2.svg',
                 transparent=True)
+
+
+def plot_vert_hf():
+    """Temporary"""
+
+    ds = xmitgcm.open_mdsdataset(
+        "/albedo/work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_094/",
+        prefix=['W', 'S', 'T'],
+        delta_t=4,
+        ref_date="2021-9-13 12:0:0")
+
+    ds['Z'] = ds['Z'].astype('<f4')
+    ds['Zl'] = ds['Zl'].astype('<f4')
+
+    def calc_hc(ds):
+        ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
+        ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
+        ds['t_exact'] = gsw.t_from_CT(ds['S'], ds['CT'], ds['P'])
+        ds['cp'] = gsw.cp_t_exact(ds['S'], ds['t_exact'], ds['P'])
+        ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])
+        ds['HC'] = ds['rho']*ds['cp']*(ds['t_exact']-(-2))
+        print(ds['HC'].isel(Z=0).mean().values)
+        return ds  # Units are J/m3
+
+    ds = calc_hc(ds)
+    # Z = np.arange(-240, 0, 10)
+    # whf = []
+    # for i in Z:
+    #     da = ds['W'].interp(Zl=i)*ds['HC'].interp(Z=i)
+    #     mean = da.mean().values
+    #     print(i, mean)
+    #     whf.append(mean)
+    # ds['whf'] = ds['W'].interp(Zl=-140)*ds['HC'].interp(Z=-140)
+    # mean = ds['whf'].mean().values
+
+    fig, ax = plt.subplots()
+    ax.plot((ds['W'].interp(Zl=-210)*ds['HC'].interp(Z=-210)).mean(['XC', 'YC']), c='pink')
+    ax.plot((ds['W'].interp(Zl=-170)*ds['HC'].interp(Z=-170)).mean(['XC', 'YC']), c='b')
+    ax.plot((ds['W'].interp(Zl=-130)*ds['HC'].interp(Z=-130)).mean(['XC', 'YC']), c='k')
+    ax.plot((ds['W'].interp(Zl=-90)*ds['HC'].interp(Z=-90)).mean(['XC', 'YC']), c='r')
+    ax.plot((ds['W'].interp(Zl=-50)*ds['HC'].interp(Z=-50)).mean(['XC', 'YC']), c='g')
+    ax.hlines((ds['W'].interp(Zl=-90)*ds['HC'].interp(Z=-90)).mean(['XC', 'YC', 'time']), 0, 19)
+    ax.hlines((ds['W'].interp(Zl=-130)*ds['HC'].interp(Z=-130)).mean(['XC', 'YC', 'time']), 0, 19)
+    # ax.plot(whf, Z)
+    # plt.savefig("test_-2.svg")
+
+    # fig, [ax, ax1, ax2] = plt.subplots(nrows=3)
+    # fig.set_figheight(8)
+    # fig.set_figwidth(5)
+    # c = ds['whf'].isel(time=2).plot.contourf(
+    #     Y='XC', levels=20, ax=ax, cmap='seismic', add_colorbar=True)
+    # c = ds['whf'].isel(time=8).plot.contourf(
+    #     Y='XC', levels=20, ax=ax1, cmap='seismic', add_colorbar=True)
+    # c = ds['whf'].isel(time=17).plot.contourf(
+    #     Y='XC', levels=20, ax=ax2, cmap='seismic', add_colorbar=True)
+    # # ax.set_title("")
+    # # cbar = plt.colorbar(c, orientation='horizontal')
+    # # cbar.ax.tick_params(labelsize=9)
+    # # ax.set_title(
+    # #     '$Z=80$ $m$ vertical adv. heat flux ($kW$ $m^{-2}$)',
+    # #     fontsize=9)
+    # # ax.tick_params(axis='both', labelsize=9)
+    # # ax.set_ylabel("")
+    # # ax.set_xlabel("")
+    # # ax.set_yticks([0, 66, 132])  # -50, -125, -220, -396])
+    # # ax.set_yticklabels(["0 m", "66 m", "132 m"])  # ["50 m", "125 m", "220 m", "396 m"])
+    # # ax.set_xticks([0, 1138, 1238, 2376])
+    # # ax.set_xticklabels(["0 km", "1.14 km", "1.24 km", "2.38 km"])
+    # # ax.text(0.1, 0.1, "Mean $=$ "+str(mean*1000)[0:6]+" $W$ $m^{-2}$",
+    # #         fontsize=9)
+    # # ds['W'].interp(Zl=-140).mean('time').plot.contourf(
+    # #     Y='XC', levels=20, ax=ax1, cmap='seismic', add_colorbar=True)
+    # # ds['HC'].interp(Z=-140).mean('time').plot.contourf(
+    # #     Y='XC', levels=20, ax=ax2, cmap='seismic', add_colorbar=True)
+    # #plt.subplots_adjust(bottom=0.2)
+    plt.savefig('old_figs_and_scripts/vert_hf_-2.svg', transparent=False)
+
+
+def plot_profiles():
+    """temporary"""
+
+    ds = xmitgcm.open_mdsdataset(
+        "../MITgcm/so_plumes/mrb_102/",
+        read_grid=False,
+        prefix=['W', 'S', 'T'],
+        delta_t=4,
+        ref_date="2021-9-13 12:0:0")
+
+    dZ = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 11]
+    Z = (-1)*np.cumsum(dZ)
+
+    fig, [ax1, ax2] = plt.subplots(ncols=2)
+    ax1.plot(ds['T'].isel(time=0).mean(['i', 'j']), Z, c='k', ls='-')
+    ax1.plot(ds['T'].isel(time=-1).mean(['i', 'j']), Z, c='k', ls=':')
+    ax2.plot(ds['S'].isel(time=0).mean(['i', 'j']), Z, c='k', ls='-')
+    ax2.plot(ds['S'].isel(time=-1).mean(['i', 'j']), Z, c='k', ls=':')
+    plt.savefig('meansTS_profs_102.svg', transparent=True)
+
+
+def hc_cumsum():
+    """temporary"""
+
+    ds = xmitgcm.open_mdsdataset(
+        "../MITgcm/so_plumes/mrb_105/",
+        prefix=['W', 'S', 'T'],
+        delta_t=4,
+        ref_date="2021-9-13 12:0:0")
+    ds['Z'] = ds['Z'].astype('<f4')
+    ds['Zl'] = ds['Zl'].astype('<f4')
+
+    def calc_hc(ds):
+        ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
+        ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
+        ds['t_exact'] = gsw.t_from_CT(ds['S'], ds['CT'], ds['P'])
+        ds['cp'] = gsw.cp_t_exact(ds['S'], ds['t_exact'], ds['P'])
+        ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])
+        ds['HC'] = ds['rho']*ds['cp']*(ds['t_exact']-(-2))*ds['drF']*ds['rA']
+        return ds  # Units of HC are J (total per cell)
+
+    ds = calc_hc(ds)
+    da = (ds['HC'].sum(['XC', 'YC']).isel(time=-1) -
+          ds['HC'].sum(['XC', 'YC']).isel(time=0))
+
+    fig, ax1 = plt.subplots()
+    ax1.plot(da.values[::-1], da['Z'].values[::-1], label='HC ($J$)', c='k')
+    ax1.plot(np.cumsum(da.values[::-1]), da['Z'].values[::-1],
+             label='Cumulative sum of HC ($J$)', c='g')
+    ax1.set_yticks([0, -50, -125, -220])
+    ax2 = ax1.twiny()
+    a = ds['rA'].sum(['XC', 'YC']).values
+    for n, i in enumerate(np.cumsum(da.values[::-1])/(a*36*3600)):
+        print(da['Z'].values[::-1][n], i)
+    ax2.plot(np.cumsum(da.values[::-1])/(a*36*3600), da['Z'].values[::-1],
+             label='HF ($W$ $m^{-2}$)', c='r')
+    ax1.grid()
+    ax1.legend()
+    ax2.legend()
+    plt.savefig("HF_105.svg", transparent=True)
 
 
 if __name__ == "__main__":
     # for run in runs:
     #     plot_ice_interface_hovm(run)
     # plot_pt_depth()
-    plot_surface()
+    # plot_vert_hf()
+    # plot_profiles()
+    # compare_vert_hf()
+    hc_cumsum()
