@@ -2,7 +2,7 @@
 # Ultimately, I am here referring to the preparation of binary files
 # for initialising my simulations.
 
-import mooring_time_series_analyses as mtsa
+import analysis_mooring_time_series as mtsa
 import cell_thickness_calculator as ctc
 from datetime import datetime as dt
 import matplotlib.pyplot as plt
@@ -274,12 +274,16 @@ def forcing_Q(Nx, Ny, dx, lead_width, forcing_time=24, integration_time=36,
 
 def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
                  integration_time=36, lead_position='centre'):
-    """We base our ice growth rate on Stefan's Law and use the
-    coefficient (0.025) suggested by Cammaert and Muggeridge (1988).
-    Leppäranta (1993) provides a good overview of Stefan's (1891)
-    idealised formulation. With an air temperature of -15.15 C (ERA5
-    on Sep 12, 2021) we get 0.09730 m of ice after 1 day. We then cease
-    forcing for 12 hours to let the water reorganise itself.
+    """We base our ice growth rate on Stefan's Law. The coefficient
+    formulation or Cammaert and Muggeridge (1988) is most intuitive.
+    Leppäranta (1993) provides a detailed overview of Stefan's (1891)
+    idealised formulation. The basic idea is:
+    [ice growth in 1 day] = a * sqrt[freezing-degree days], where a is
+    usually taken as 0.033 m / sqrt(C day)
+    E.g., with an air temperature of -15.15 C (ERA5 on Sep 12, 2021) we
+    get 0.1201 m of ice after 1 day. 
+    In our sims, we cease forcing for some hours at the end to let the
+    water reorganise itself.
     Parameters:
         Nx, Ny: Number of grid points
         dx: Grid spacing (m), assumed to be square cells
@@ -290,16 +294,17 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
         Saves binary for MITgcm"""
 
     # e.g., 36 hours plus 1 more for differentiation
+    # Reformulated for hourly integration
     hours = np.arange(integration_time+1)
-    ice_thickness = [stefan_coeff*np.sqrt(i*17.15/24) for i in hours]
+    ice_thickness = [stefan_coeff*np.sqrt(i*13.25/24) for i in hours]
     ice_growth = np.diff(ice_thickness)
 
     # But we only want one day of growth
     ice_growth[forcing_time+1:] = 0
 
     # Note if we assume 30 PSU are rejected, then we can calculate flux
-    # 1m x 1m x [growth rate] m/hr x 30 kg/m3 = [salt flux] kg/hr
-    salt_rejection = ice_growth*30/3600*1000
+    # [growth rate in m/hr] x [30000 g/m3] = [salt flux in g / hr m2]
+    salt_rejection = ice_growth*30000/3600
 
     # Plot to show what I mean
     fig, ax = plt.subplots()
@@ -537,8 +542,8 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
 
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 66, 594, 99, 4, 'variable', 100, "118"
-    forcing_time, integration_time, lead_position = 24, 36, 'centre'
+    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "128"
+    forcing_time, integration_time, lead_position = 24, 72, 'centre'
     stefan_coeff = 0.037
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)

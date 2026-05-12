@@ -3,7 +3,7 @@
 import xarray as xr
 import xmitgcm
 import numpy as np
-import mooring_time_series_analyses as mtsa
+import analysis_mooring_time_series as mtsa
 import gsw
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -53,7 +53,8 @@ def plot_model_evaluation_hov(fp, dt):
 
     # Initialise the plot
     cm = 1/2.54  # Inches to centimeters (since mpl uses inches)
-    layout = [['a1', 'a2', 'a3'], ['a4', 'a5', 'a6']]
+    layout = [['a1', 'a1', 'a1', 'a2', 'a2', 'a2', '.', 'a3', 'a3', 'a3'],
+              ['a4', 'a4', 'a4', 'a5', 'a5', 'a5', '.', 'a6', 'a6', 'a6']]
     fig, ad = plt.subplot_mosaic(layout)
     ax1, ax2, ax3 = ad['a1'], ad['a2'], ad['a3']
     ax4, ax5, ax6 = ad['a4'], ad['a5'], ad['a6']
@@ -68,10 +69,13 @@ def plot_model_evaluation_hov(fp, dt):
     # Colours and other misc
     T_min, T_max = -1.8, -0.2
     S_min, S_max = 34.61, 34.79
+    sf_min, sf_max = -100, 100
     T_cmap = mpl.colormaps['Blues_r']
     S_cmap = mpl.colormaps['Oranges']
+    sf_cmap = mpl.colormaps['bwr']
     T_norm = plt.Normalize(T_min, T_max)
     S_norm = plt.Normalize(S_min, S_max)
+    sf_norm = plt.Normalize(sf_min, sf_max)
 
     # First we split 4 of the panels (this code comes from the google AI)
     def split_panels(ax):
@@ -88,6 +92,7 @@ def plot_model_evaluation_hov(fp, dt):
     ax4 = split_panels(ax4)
     ax5 = split_panels(ax5)
 
+    # Plotting the hovmoellers
     def plot_hov(ds, var, ax, norm, cm, start):
         d = [-50, -125, -220]
         for a in ax:
@@ -98,23 +103,22 @@ def plot_model_evaluation_hov(fp, dt):
         ax[0].set_xlim(start-timedelta(hours=24), start)
         ax[1].set_xlim(start, start+timedelta(hours=36))
         return p
-
     model_t = plot_hov(ds, 't', ax4, T_norm, T_cmap, start)
     model_s = plot_hov(ds, 'S', ax5, S_norm, S_cmap, start)
     moord_t = plot_hov(moords, 'T', ax1, T_norm, T_cmap, start)
     moord_s = plot_hov(moords, 'SA', ax2, S_norm, S_cmap, start)
 
-    print("The streamfunction stuff could all be wrong!")
-    # Note to self: Check that you're using the correct variabiles and coords,
-    # also check that the units make sense etc.
-    sf.sel(time=start+timedelta(hours=4)).plot.contourf(ax=ax3, levels=20)
-    sf.sel(time=start+timedelta(hours=24)).plot.contourf(ax=ax6, levels=20)
-    #            x='time', y='Z', ax=a, levels=20, norm=norm, cmap=cm,
-    #            add_colorbar=False)
+    # Plotting the streamfunctions
+    # (Check that the units make sense?)
+    t_top_hrs, t_bot_hrs = 4, 24
+    sf_top = sf.sel(time=start+timedelta(hours=t_top_hrs)).plot.contourf(
+        ax=ax3, levels=20, norm=sf_norm, cmap=sf_cmap, add_colorbar=False)
+    sf_bot = sf.sel(time=start+timedelta(hours=t_bot_hrs)).plot.contourf(
+        ax=ax6, levels=20, norm=sf_norm, cmap=sf_cmap, add_colorbar=False)
 
-
-    axes = [ax1[0], ax1[1], ax2[0], ax2[1], ax3,
-            ax4[0], ax4[1], ax5[0], ax5[1], ax6]
+    # Handling formatting etc.
+    axes = [ax1[0], ax1[1], ax2[0], ax2[1],
+            ax4[0], ax4[1], ax5[0], ax5[1],]
     for ax in axes:
         ax.set_ylabel("")
         ax.set_yticks([-50, -125, -220])
@@ -123,17 +127,31 @@ def plot_model_evaluation_hov(fp, dt):
         ax.set_xlabel("")
         ax.tick_params(axis='both', labelsize=8)
         ax.grid()
-    for ax in [ax1, ax2, ax4, ax5]:
+    for ax in [ax1, ax2, ax4, ax5]:  # Have to adjust manually is start changes
         ax[0].set_xticks(
             [datetime(2021, 9, 12, 12), datetime(2021, 9, 13, 12)])
         ax[1].set_xticks(
             [datetime(2021, 9, 13, 12), datetime(2021, 9, 14, 12)])
         ax[0].set_xticklabels(["Sep 12\n12:00", ""])
         ax[1].set_xticklabels(["Sep 13\n12:00", "Sep 14\n12:00"])
-
+    for ax in [ax3, ax6]:
+        dx = sf['XG'].isel(XG=-1).to_numpy()/2
+        ax.set_xticks([0, dx, dx*2])
+        ax.set_xticklabels(
+            [str(int((-1)*dx))+' m', str(0)+' m', str(int(dx))+' m'])
+        ax.set_yticks([0, -50, -125, -220, sf['Z'].isel(Z=-1).data])
+        ax.set_yticklabels(['0 m', '50 m', '125 m', '220 m',
+                            str(abs(sf['Z'].isel(Z=-1).data))+' m'])
+        ax.set_ylabel("")
+        ax.set_xlabel("")
+        ax.set_title("")
+        ax.tick_params(axis='both', labelsize=8)
+        ax.grid()
     ax1[0].set_yticklabels(['50 m', '125 m', '220 m'], fontsize=8)
     ax4[0].set_yticklabels(['50 m', '125 m', '220 m'], fontsize=8)
+    ax6.set_xlabel("Across-lead distance", fontsize=8)
 
+    # Colourbars for the split axes
     def add_colourbar(ax, p, label, ticks):
         # See: https://matplotlib.org/stable/gallery/axes_grid1/
         # demo_colorbar_with_inset_locator.html
@@ -164,6 +182,18 @@ def plot_model_evaluation_hov(fp, dt):
     add_colourbar(
         ax2[0], moord_s, "Absolute salinity (g kg$^{-1}$)",
         [34.61, 34.67, 34.73, 34.79])
+    
+    # Colourbar for the streamfunctions
+    axins = inset_axes(
+        ax3, width="90%", height="5%", loc="upper center", borderpad=0,
+        bbox_to_anchor=(0, 0., 1, 1.35), bbox_transform=ax3.transAxes)
+    cbar = fig.colorbar(sf_top, orientation='horizontal', cax=axins)
+    cbar.ax.set_xticks([-100, -50, 0, 50, 100])
+    cbar.solids.set_edgecolor("face")
+    cbar.ax.tick_params(labelsize=8)
+    cbar.ax.text(
+        0.5, 1.5, "Across-lead\nstreamfunction (m$^3$ s$^{-1}$)",
+        transform=cbar.ax.transAxes, fontsize=8, ha='center') 
 
     # Finally some annotations
     def add_annots(ax, label, c):
@@ -184,12 +214,36 @@ def plot_model_evaluation_hov(fp, dt):
     add_annots(ax4[1], r'$\bf{Modelled}$'+'\nplume', c='k')
     add_annots(ax5[0], 'Model\n'+r'$\bf{initial}$'+'\nconds.', c='w')
     add_annots(ax5[1], r'$\bf{Modelled}$'+'\nplume', c='w')
+    t_top_annot = ('$t_{model}=$'+str(t_top_hrs)+' h,\n'+
+                   str((start+timedelta(hours=t_top_hrs)).strftime(
+                       "%b %d %H:%M"))+'')
+    add_annots(ax3,t_top_annot, c='k')
+    t_bot_annot = ('$t_{model}=$'+str(t_bot_hrs)+' h,\n'+
+                   str((start+timedelta(hours=t_bot_hrs)).strftime(
+                       "%b %d %H:%M"))+'')
+    add_annots(ax6, t_bot_annot, c='k')
 
-    plt.subplots_adjust(hspace=0.4, wspace=0.16, top=0.8)
-    plt.savefig("figure_model_eval.svg")#, transparent=True)
+    # Add panel lettering
+    def add_letter(ax, x, y, letter):    
+        ax.text(x, y, letter, transform=ax.transAxes,
+                fontsize=8, fontweight='bold', va='top', ha='right',
+                bbox=dict(facecolor='white', edgecolor='black',
+                          boxstyle='circle,pad=0.1'))
+    add_letter(ax1[0], 0.225, 0.95, 'a')
+    add_letter(ax2[0], 0.225, 0.95, 'b')
+    add_letter(ax3, 0.088, 0.95, 'e')
+    add_letter(ax4[0], 0.225, 0.95, 'c')
+    add_letter(ax5[0], 0.225, 0.95, 'd')
+    add_letter(ax6, 0.088, 0.95, 'f')
+
+    plt.subplots_adjust(hspace=0.4, wspace=0.5, top=0.8, left=0.1, right=0.93)
+    plt.savefig("figure_model_eval.pdf")
+    plt.savefig("figure_model_eval.svg", transparent=True)
+    plt.savefig("figure_model_eval.png", dpi=300)
     plt.clf()
 
 
 if __name__ == "__main__":
-    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_099"
+    #fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
+    fp = "../MITgcm/so_plumes/mrb_128"
     plot_model_evaluation_hov(fp, dt=4)
