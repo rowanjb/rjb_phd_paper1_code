@@ -1,32 +1,17 @@
+# For making an overview figure of the model setup
+# Requires some post-processing in inkscape
+
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 from datetime import datetime as dt
 from datetime import timedelta as td
 import matplotlib as mpl
-import cartopy.crs as ccrs
-import cartopy.feature as feature
-from pyhdf.SD import SD, SDC
-import cmocean
-from matplotlib.patches import Rectangle
-
-import copy
-import matplotlib.cm as colourmap
-import xarray as xr
 import xmitgcm
-import numpy as np
-import analysis_mooring_time_series as mtsa
 import gsw
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-import matplotlib as mpl
-from datetime import datetime, timedelta
+from datetime import datetime
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from mpl_toolkits.mplot3d import Axes3D  # Needed for 3D projections
-
-import pyvista as pv
-from skimage.measure import marching_cubes
+from matplotlib.patches import FancyBboxPatch
 
 
 def plot_model_overview():
@@ -60,30 +45,27 @@ def plot_model_overview():
     # Initialise the plot
     cm = 1/2.54  # Inches to centimeters (since mpl uses inches)
     layout = [
-        [ '.', 'a1', 'a1', 'a1', 'a1',  '.',  '.', 'a2', 'a2', 'a2', 'a2',  '.'],
-        [ '.', 'a1', 'a1', 'a1', 'a1',  '.',  '.', 'a2', 'a2', 'a2', 'a2',  '.'],
-        [ '.', 'a1', 'a1', 'a1', 'a1',  '.',  '.', 'a2', 'a2', 'a2', 'a2',  '.'],
-        [ '.', 'a1', 'a1', 'a1', 'a1',  '.',  '.', 'a2', 'a2', 'a2', 'a2',  '.'],
-        [ '.', 'a1', 'a1', 'a1', 'a1',  '.',  '.', 'a2', 'a2', 'a2', 'a2',  '.'],
-        ['ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac',  '.',  '.'],
-        ['ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac', 'ac',  '.',  '.'],
-        ['a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'aa', '.'],
-        ['a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'aa', '.'],
-        ['a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'aa', '.'],
-        ['a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'aa', '.'],
-        ['a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'a3', 'aa', '.'],
-        [ '.', '.', '.', '.',  '.', '.', '.', '.', '.', '.', '.',  '.'],
-        [ '.', 'a4', 'a4', 'a4',  '.', 'a6', 'a6', 'a7', 'a7', 'a8', 'a8',  '.'],
-        [ '.', 'a4', 'a4', 'a4',  '.', 'a6', 'a6', 'a7', 'a7', 'a8', 'a8',  '.'],
-        [ '.', 'a4', 'a4', 'a4',  '.', 'a6', 'a6', 'a7', 'a7', 'a8', 'a8',  '.'],
-        [ '.', 'a4', 'a4', 'a4',  '.', 'a6', 'a6', 'a7', 'a7', 'a8', 'a8',  '.'],
-        [ '.', 'a4', 'a4', 'a4',  '.', 'a6', 'a6', 'a7', 'a7', 'a8', 'a8',  '.']]
+        ['a1', 'a1', 'a1', 'a1', 'a1',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a1', 'a1', 'a1', 'a1', 'a1',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a1', 'a1', 'a1', 'a1', 'a1',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a2', 'a2', 'a2', 'a2', 'a2',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a2', 'a2', 'a2', 'a2', 'a2',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        ['a2', 'a2', 'a2', 'a2', 'a2',  '.', 'a3', 'a3', 'a4', 'a4', 'a5', 'a5'],
+        [ '.',  '.',  '.',  '.',  '.',  '.',  '.',  '.',  '.',  '.',  '.',  '.'],
+        ['aa', 'aa', 'aa', 'aa', 'aa', 'aa', 'aa', 'aa',  '.',  '.',  '.',  '.'],
+        ['aa', 'aa', 'aa', 'aa', 'aa', 'aa', 'aa', 'aa',  '.',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.', 'a7', 'a7'],
+        ['a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'a6', 'ab',  '.',  '.',  '.']]
     fig, ad = plt.subplot_mosaic(layout)
     ax1, ax2, ax3, ax4 = ad['a1'], ad['a2'], ad['a3'], ad['a4']
-    ax6, ax7, ax8 = ad['a6'], ad['a7'], ad['a8']
-    axa, axc = ad['aa'], ad['ac']
+    ax5, ax6, ax7 = ad['a5'], ad['a6'], ad['a7']
+    axa, axb = ad['aa'], ad['ab']
     fig.set_figwidth(18*cm)
-    fig.set_figheight(18*cm)
+    fig.set_figheight(14*cm)
 
     # Open the basic file
     fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
@@ -92,7 +74,7 @@ def plot_model_overview():
     ds = xmitgcm.open_mdsdataset(fp, prefix=pref, delta_t=4, ref_date=start)
     ds['Z'] = ds['Z'].astype('<f4')  # Endianness
 
-    # Plot the fluxes
+    # Plot the flux panels
     force_vars = ["Qin", "Sin"]
     force_fps = {
         "Qin": fp+"/bin_forc_Q_72x33x594_100m_lead.bin",
@@ -119,37 +101,28 @@ def plot_model_overview():
             dt(2021, 9, 15, 12),
             dt(2021, 9, 16, 12),
         ])
-        ax.set_xticklabels([
-            "Sep 13\n12:00",
-            "Sep 14\n12:00",
-            "Sep 15\n12:00",
-            "Sep 16\n12:00",
-        ])
         ax.set_xlabel("")
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.grid()
+    ax1.set_xticklabels([])
+    ax2.set_xticklabels([
+        "Sep 13\n12:00",
+        "Sep 14\n12:00",
+        "Sep 15\n12:00",
+        "Sep 16\n12:00",
+    ])
+    ax1.set_ylim(-0.28, 0.1)
+    ax2.set_ylim(-20, 280)
 
-    # Plot the vertical resolution
-    drf = ds['drF'].values
-    ax4.plot(drf, np.arange(0, len(drf)), c='k')
-    ax4.invert_yaxis()
-    ax4.spines['right'].set_visible(False)
-    ax4.spines['top'].set_visible(False)
-    ax4.set_ylabel("Vertical level", fontsize=8)
-    ax4.grid()
-    ax4.set_yticks([0, 50, 99])
-    #ax4.set_xticks([5, 10])
-    #ax4.set_xticklabels(['5 m', '10 m'])
-
-    # Plot the initial conditions
+    # Plot the initial conditions panels
     init = ds.isel(time=0, YC=17, XC=297)
-    init['T'].plot(ax=ax6, y='Z', c='k')
-    init['S'].plot(ax=ax7, y='Z', c='k')
+    init['T'].plot(ax=ax3, y='Z', c='k')
+    init['S'].plot(ax=ax4, y='Z', c='k')
     init['CT'] = gsw.CT_from_pt(init['S'], init['T'])
     init['sigma0'] = gsw.sigma0(init['S'], init['CT'])
-    init['sigma0'].plot(ax=ax8, y='Z', c='k')
-    for ax in [ax6, ax7, ax8]:
+    init['sigma0'].plot(ax=ax5, y='Z', c='k')
+    for ax in [ax3, ax4, ax5]:
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.set_ylabel("")
@@ -157,95 +130,126 @@ def plot_model_overview():
         ax.set_yticks([0, -50, -125, -220, -396])
         ax.set_yticklabels(['0 m', '50 m', '125 m', '220 m', '396 m'])
         ax.grid()
-    ax7.set_yticklabels([])
-    ax8.set_yticklabels([])
-    ax6.set_xlim([-2.1, 1])
-    ax7.set_xlim([34.5, 34.99])
-    ax8.set_xlim([27.74, 27.85])
+    ax4.set_yticklabels([])
+    ax5.set_yticklabels([])
+    ax3.set_xlim([-2.1, 1])
+    ax4.set_xlim([34.58, 34.99])
+    ax5.set_xlim([27.74, 27.85])
 
-    # Plot slice of temperature
-    T = ds['S'].isel(time=2)
-    # copy the colormap
-    cmap = copy.copy(colourmap.bone)
-    vmin, vmax = 34.61, 34.79
+    # Plot the vertical resolution
+    drf = ds['drF']
+    ax7.plot(drf, np.arange(0, len(drf)), c='k')
+    ax7.invert_yaxis()
+    ax7.spines['right'].set_visible(False)
+    ax7.spines['top'].set_visible(False)
+    ax7.set_ylabel("Vertical level", fontsize=8)
+    ax7.grid()
+
+    # Plot the "primary" slice of temperature and the colourbar
+    T = ds['S'].isel(time=3)
+    cmap = plt.cm.colors.ListedColormap(plt.cm.Oranges(np.linspace(0.35, 1, 256)))
+    vmin, vmax = 34.625, 34.685
     C = T.isel(YC=0).plot.contourf(levels=19,
-        ax=ax3, cmap=cmap, vmin=vmin, vmax=vmax, extend='max', add_colorbar=False)
+        ax=ax6, cmap=cmap, vmin=vmin, vmax=vmax, extend='max', add_colorbar=False)
     axins = inset_axes(
-        ax3, width="35%", height="8%", loc='lower center',
-        bbox_to_anchor=(0, 0.3, 1, 1), bbox_transform=ax3.transAxes)
+        ax6, width="35%", height="4%", loc='lower center',
+        bbox_to_anchor=(0, 0.125, 1, 1), bbox_transform=ax6.transAxes)
     cbar = fig.colorbar(C, cax=axins, orientation='horizontal', extend=False)
-    axins.set_xticks([34.61, 34.67, 34.73, 34.79])
-    cbar.set_label(r'(c) Abs. salinity after 4 hours (g kg$^{-1}$)', size=8)
+    axins.set_xticks([34.625, 34.645, 34.665, 34.685])
+    axins.set_title(r'(f) Abs. salinity after 6 hours (g kg$^{-1}$)', size=8)
     axins.tick_params(labelsize=8)
     cbar.solids.set_edgecolor("face")
-    ax3.set_yticks([0, -50, -125, -220, -396])
-    ax3.set_yticklabels(['0 m', '50 m', '125 m', '220 m', '396 m'])
-    #ax5.set_yticks([0, -50, -125, -220])
-    #ax5.set_yticklabels(['0 m', '50 m', '125 m', '220 m'])
-    ax3.set_xticks([0, 594*2, 594*4])
-    ax3.set_xticklabels(['0 m', str(594*2)+' m', str(594*4)+' m'])
-    ax3.set_xlim(0, 594*4)
-    #ax5.set_xticks([700, 594*2])
-    for ax in [ax3]:#, ax5]:
-        ax.set_xlabel('')
-        ax.set_ylabel('')
+    ax6.set_yticks([0, -50, -125, -220])
+    ax6.set_yticklabels(['0 m', '50 m', '125 m', '220 m'])
+    ax6.set_ylim([-220, 0])
+    ax6.set_xlim([594*2-300, 594*2+300])
+    ax6.set_xticks([594*2-300, 594*2, 594*2+300])
+    ax6.set_xticklabels(
+        [str(594*2-300)+' m', str(594*2)+' m', str(594*2+300)+' m'])
+    ax6.set_xlabel('')
+    ax6.set_ylabel('')
 
-    ## Adding grid lines to help with inkscape annotations
-    #axc.hlines(66, 700, 1188, colors='k', ls='--')
-    #axc.vlines(700, 4, 66, colors='k', ls='--')
-    #axc.vlines(1188, 4, 66, colors='k', ls='--')
-    #ax3.hlines(-220, 700, 1188, colors='k', ls='--')
-    #ax3.vlines(700, -4, -220, colors='k', ls='--')
-    #ax3.vlines(1188, -4, -220, colors='k', ls='--')
+    # bbox in parent axis coordinates for the colourbar
+    box = FancyBboxPatch(
+        (0.30, 0.18), 0.40, 0,
+        boxstyle="Round,pad=0.07,rounding_size=0.035", fc="white",
+        ec="none", alpha=0.6, transform=ax6.transAxes, zorder=2)
+    box.set_mutation_aspect(8 / 4)
+    ax6.add_patch(box)
 
     # Additional surfaces (modify later in inkscape!)
-    T.isel(XC=-1).plot.contourf(levels=19,
-        ax=axa, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
     T.isel(Z=0).plot.contourf(levels=19,
-        ax=axc, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
-    for ax in [axa, axc]:
+        ax=axa, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
+    T.isel(XC=372).plot.contourf(levels=19,
+        ax=axb, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
+    for ax in [axa, axb]:
         ax.set_ylabel('')
         ax.set_xlabel('')
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_title('')
-    axc.set_yticks([0, 66, 132])
-    axc.set_yticklabels(['0 m', '66 m', '132 m'])
-    #axd.set_yticks([0, 66])
-    #axd.set_yticklabels(['0 m', '66 m'])
+    axa.set_yticks([0, 66, 132])
+    axa.set_yticklabels(['0 m', '66 m', '132 m'])
+    axa.set_xlim([594*2-300, 594*2+300])
+    axb.set_ylim([-220, 0])
 
     # Adding titles etc
-    ax1.set_title("(a) Salt flux, $S_{in}$", fontsize=8)
-    ax1.set_ylabel("g m$^{-2}$ s$^{-1}$", fontsize=8)
-    ax2.set_title("(b) Heat flux, $Q_{in}$", fontsize=8)
-    ax2.set_ylabel("W m$^{-2}$", fontsize=8)
-    ax4.set_title("(d) Vertical resolution", fontsize=8)
-    ax4.set_xlabel("m", fontsize=8)
-    ax6.set_title(r"(e) Pot. temp., $\theta$", fontsize=8)
-    ax6.set_xlabel(r"℃", fontsize=8)
-    ax7.set_title("(f) Abs. salinity", fontsize=8)
-    ax7.set_xlabel(r"g kg$^{-1}$", fontsize=8)
-    ax8.set_title(r"(g) Pot. dens., $\sigma_{\theta}$", fontsize=8)
-    ax8.set_xlabel(r"kg$^{-1}$ m$^{-3}$", fontsize=8)
-    ax3.set_title("(c) Snaptshot of abs. salinity after 4 hours", fontsize=8)
-    #ax5.set_title("(e) Close-up of abs. sal.", fontsize=8)
+    bb = dict(boxstyle="round,pad=0.15", fc="white", ec="none", alpha=0.6)
+    ax1.set_title("Buoyancy forcing through sea ice lead", fontsize=8)
+    ax1.text(
+        0.5, 0.86, "(a) Salt flux",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax1.transAxes,
+        fontsize=8, bbox=bb)
+    ax1.set_ylabel(r"g m$^{-2}$ s$^{-1}$", fontsize=8)
+    ax2.text(
+        0.5, 0.86, "(b) Heat flux",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax2.transAxes,
+        fontsize=8, bbox=bb)
+    ax2.set_ylabel(r"W m$^{-2}$", fontsize=8)
+    ax3.set_title("", fontsize=8)
+    ax3.text(
+        0.5, 0.9, "(c) Pot.\ntemp.",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax3.transAxes,
+        fontsize=8, bbox=bb)
+    ax3.set_xlabel(r"℃", fontsize=8)
+    ax4.set_title("Initial conditions", fontsize=8)
+    ax4.text(
+        0.5, 0.9, "(d) Abs.\nsalinity",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax4.transAxes,
+        fontsize=8, bbox=bb)
+    ax4.set_xlabel(r"g kg$^{-1}$", fontsize=8)
+    ax5.set_title("", fontsize=8)
+    ax5.text(
+        0.5, 0.9, "(e) Pot.\ndensity",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax5.transAxes,
+        fontsize=8, bbox=bb)
+    ax5.set_xlabel(r"kg$^{-1}$ m$^{-3}$", fontsize=8)
+    ax7.set_title("", fontsize=8)
+    ax7.text(
+        0.5, 0.9, "(g) Vertical\nresolution",
+        va='center', ha='center',
+        rotation='horizontal',
+        transform=ax7.transAxes,
+        fontsize=8, bbox=bb)
+    ax6.set_title("", fontsize=8)
 
     # Some basic formatting for all axes
-    axes = [ax1, ax2, ax3, ax4, ax6, ax7, ax8, axa, axc]
+    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, axa, axb]
     for ax in axes:
         ax.tick_params(axis='both', labelsize=8)
 
-    # # Add these axes in later
-    # for ax in [ax3, ax5]:
-    #     ax.spines['top'].set_visible(False)
-    #     ax.spines['right'].set_visible(False)
-    #     ax.spines['bottom'].set_visible(False)
-    #     ax.spines['left'].set_visible(False)
-    #     ax.get_xaxis().set_ticks([])
-    #     ax.get_yaxis().set_ticks([])
-
     plt.subplots_adjust(
-        right=0.975, left=0.1, hspace=10, wspace=0.5, top=0.95, bottom=0.085)
+        right=0.97, left=0.1, hspace=0.5, wspace=0.4, top=0.95, bottom=0.085)
     plt.savefig("figure_model_overview.png", dpi=500)
     plt.savefig("figure_model_overview.svg")
     plt.savefig("figure_model_overview.pdf")
