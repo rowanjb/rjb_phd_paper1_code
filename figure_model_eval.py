@@ -15,6 +15,27 @@ def plot_model_evaluation_hov(fp, dt):
     """For creating Hovmoeller diagrams of the plume as well as
     streamfunctions showing the accross-lead view."""
 
+    # IPCC-adjacent formatting according to ChatGPT
+    mpl.rcParams.update({
+        'axes.linewidth': 0.8,
+        'xtick.major.width': 0.8,
+        'ytick.major.width': 0.8,
+        'xtick.minor.width': 0.6,
+        'ytick.minor.width': 0.6,
+        'xtick.major.size': 4,
+        'ytick.major.size': 4,
+        'xtick.minor.size': 2,
+        'ytick.minor.size': 2,
+        'axes.grid': False,
+        'grid.linewidth': 0.5,
+        'grid.color': '0.85',
+        'lines.linewidth': 1.2,
+        'lines.markersize': 4,
+        'legend.frameon': False,
+        'mathtext.default': 'regular',
+        'svg.fonttype': 'none',
+    })
+
     # Define the start of the plume
     # We'll plot 24 hours before this and 36 hours after
     start = datetime(2021, 9, 13, 12)
@@ -23,7 +44,7 @@ def plot_model_evaluation_hov(fp, dt):
     pref = ['S', 'T', 'U']
     ds = xmitgcm.open_mdsdataset(fp, prefix=pref, delta_t=dt, ref_date=start)
     ds['Z'] = ds['Z'].astype('<f4')  # Endianness
-    
+
     # Streamfunction
     ds['transp'] = (ds['U']*ds['drF']*ds['dyG']).sum("YC")  # Check if vars are correct
     sf = ds['transp'].cumsum(dim='Z')
@@ -53,8 +74,9 @@ def plot_model_evaluation_hov(fp, dt):
 
     # Initialise the plot
     cm = 1/2.54  # Inches to centimeters (since mpl uses inches)
-    layout = [['a1', 'a1', 'a1', 'a2', 'a2', 'a2', '.', 'a3', 'a3', 'a3'],
-              ['a4', 'a4', 'a4', 'a5', 'a5', 'a5', '.', 'a6', 'a6', 'a6']]
+    layout = [
+        ['a1', 'a1', 'a1', 'a2', 'a2', 'a2', '.', 'a3', 'a3', 'a3'],
+        ['a4', 'a4', 'a4', 'a5', 'a5', 'a5', '.', 'a6', 'a6', 'a6']]
     fig, ad = plt.subplot_mosaic(layout)
     ax1, ax2, ax3 = ad['a1'], ad['a2'], ad['a3']
     ax4, ax5, ax6 = ad['a4'], ad['a5'], ad['a6']
@@ -214,27 +236,28 @@ def plot_model_evaluation_hov(fp, dt):
     add_annots(ax4[1], r'$\bf{Modelled}$'+'\nplume', c='k')
     add_annots(ax5[0], 'Model\n'+r'$\bf{initial}$'+'\nconds.', c='w')
     add_annots(ax5[1], r'$\bf{Modelled}$'+'\nplume', c='w')
-    t_top_annot = ('$t_{model}=$'+str(t_top_hrs)+' h,\n'+
+    t_top_annot = ('$t_{model}=$'+str(t_top_hrs)+' h,\n' +
                    str((start+timedelta(hours=t_top_hrs)).strftime(
                        "%b %d %H:%M"))+'')
-    add_annots(ax3,t_top_annot, c='k')
-    t_bot_annot = ('$t_{model}=$'+str(t_bot_hrs)+' h,\n'+
+    add_annots(ax3, t_top_annot, c='k')
+    t_bot_annot = ('$t_{model}=$'+str(t_bot_hrs)+' h,\n' +
                    str((start+timedelta(hours=t_bot_hrs)).strftime(
                        "%b %d %H:%M"))+'')
     add_annots(ax6, t_bot_annot, c='k')
 
     # Add panel lettering
-    def add_letter(ax, x, y, letter):    
+    def add_letter(ax, x, y, letter):
         ax.text(x, y, letter, transform=ax.transAxes,
-                fontsize=8, fontweight='bold', va='top', ha='right',
-                bbox=dict(facecolor='white', edgecolor='black',
-                          boxstyle='circle,pad=0.1'))
-    add_letter(ax1[0], 0.225, 0.95, 'a')
-    add_letter(ax2[0], 0.225, 0.95, 'b')
-    add_letter(ax3, 0.088, 0.95, 'e')
-    add_letter(ax4[0], 0.225, 0.95, 'c')
-    add_letter(ax5[0], 0.225, 0.95, 'd')
-    add_letter(ax6, 0.088, 0.95, 'f')
+                fontsize=8, va='top', ha='right',
+                bbox=dict(facecolor='white', edgecolor='none',
+                          boxstyle='circle,pad=0.05',
+                          alpha=0.2))
+    add_letter(ax1[0], 0.28, 0.95, '(a)')
+    add_letter(ax2[0], 0.28, 0.95, '(b)')
+    add_letter(ax3,    0.11,  0.95, '(e)')
+    add_letter(ax4[0], 0.28, 0.95, '(c)')
+    add_letter(ax5[0], 0.28, 0.95, '(d)')
+    add_letter(ax6,    0.11,  0.95, '(f)')
 
     plt.subplots_adjust(hspace=0.4, wspace=0.5, top=0.8, left=0.1, right=0.93)
     plt.savefig("figure_model_eval.pdf")
@@ -244,6 +267,6 @@ def plot_model_evaluation_hov(fp, dt):
 
 
 if __name__ == "__main__":
-    #fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
-    fp = "../MITgcm/so_plumes/mrb_128"
+    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
+    #fp = "../MITgcm/so_plumes/mrb_121"
     plot_model_evaluation_hov(fp, dt=4)

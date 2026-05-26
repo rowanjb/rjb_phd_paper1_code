@@ -2,7 +2,6 @@
 
 import analysis_mooring_time_series as amts
 import xarray as xr
-import gsw
 from datetime import datetime, timedelta
 import matplotlib.ticker as ticker
 from scipy.signal import savgol_filter
@@ -49,10 +48,10 @@ def plot_mooring(ds):
     S_min, S_max = 34.61, 34.79
     T_cmap = mpl.colormaps['Blues_r']
     S_cmap = mpl.colormaps['Oranges']
-    T_title = 'In situ temperature'
-    dTdt_title = "Temperature rate of change, $dT/dt$"
-    S_title = 'Absolute salinity'
-    dSdt_title = "Salinity rate of change, $dS/dt$"
+    T_title = '(a) In situ temperature'
+    dTdt_title = "(b) Temperature rate of change, $dT/dt$"
+    S_title = '(c) Absolute salinity'
+    dSdt_title = "(d) Salinity rate of change, $dS/dt$"
     T_units = '℃'
     dTdt_units = '℃ d$^{-1}$'
     S_units = 'g kg$^{-1}$'
@@ -197,22 +196,12 @@ def plot_mooring(ds):
         title='Sensor depth', title_fontsize=8,
         frameon=False, fontsize=8, ncol=3)
 
-    # Letter annotations
-    labs = {ax1: '(a)', ax2: '(b)', ax3: '(c)', ax4: '(d)'}
-    for ax in [ax1, ax2]:
-        ax.text(
-            -0.15, 1.275, labs[ax], transform=ax.transAxes, fontsize=8,
-            va='top', ha='left', zorder=120)
-    for ax in [ax3, ax4]:
-        ax.text(-0.1, 1.275, labs[ax], transform=ax.transAxes, fontsize=8,
-        va='top', ha='left', zorder=120)
-
     # Adjust spacing
-    plt.subplots_adjust(left=0.08, hspace=1, wspace=1.35, right=0.95, top=0.84)
+    plt.subplots_adjust(left=0.08, hspace=1, wspace=2, right=0.95, top=0.84)
 
     # Saving
     plt.savefig('figure_mooring.pdf', transparent=False, dpi=600)
-    plt.savefig('figure_mooring.svg', transparent=True, dpi=600)
+    plt.savefig('figure_mooring.svg', transparent=False, dpi=600)
     plt.savefig('figure_mooring.png', dpi=600)
 
 

@@ -12,6 +12,7 @@ import gsw
 from datetime import datetime
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.patches import FancyBboxPatch
+import cmocean
 
 
 def plot_model_overview():
@@ -117,10 +118,14 @@ def plot_model_overview():
 
     # Plot the initial conditions panels
     init = ds.isel(time=0, YC=17, XC=297)
-    init['T'].plot(ax=ax3, y='Z', c='k')
-    init['S'].plot(ax=ax4, y='Z', c='k')
     init['CT'] = gsw.CT_from_pt(init['S'], init['T'])
     init['sigma0'] = gsw.sigma0(init['S'], init['CT'])
+    obs = init.sel(Z=[-51, -124, -219])
+    init['T'].plot(ax=ax3, y='Z', c='k')
+    ax3.scatter(x=obs['T'], y=obs['Z'], c='k')
+    init['S'].plot(ax=ax4, y='Z', c='k')
+    ax4.scatter(x=obs['S'], y=obs['Z'], c='k')
+    ax5.scatter(x=obs['sigma0'], y=obs['Z'], c='k')
     init['sigma0'].plot(ax=ax5, y='Z', c='k')
     for ax in [ax3, ax4, ax5]:
         ax.spines['right'].set_visible(False)
@@ -145,11 +150,11 @@ def plot_model_overview():
     ax7.set_ylabel("Vertical level", fontsize=8)
     ax7.grid()
 
-    # Plot the "primary" slice of temperature and the colourbar
-    T = ds['S'].isel(time=3)
-    cmap = plt.cm.colors.ListedColormap(plt.cm.Oranges(np.linspace(0.35, 1, 256)))
+    # Plot the "primary" slice of the field and the colourbar
+    da = ds['S'].isel(time=3)
+    cmap = plt.cm.colors.ListedColormap(cmocean.cm.haline(np.linspace(0.01, 1, 256)))
     vmin, vmax = 34.625, 34.685
-    C = T.isel(YC=0).plot.contourf(levels=19,
+    C = da.isel(YC=0).plot.contourf(levels=19,
         ax=ax6, cmap=cmap, vmin=vmin, vmax=vmax, extend='max', add_colorbar=False)
     axins = inset_axes(
         ax6, width="35%", height="4%", loc='lower center',
@@ -178,9 +183,9 @@ def plot_model_overview():
     ax6.add_patch(box)
 
     # Additional surfaces (modify later in inkscape!)
-    T.isel(Z=0).plot.contourf(levels=19,
+    da.isel(Z=0).plot.contourf(levels=19,
         ax=axa, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
-    T.isel(XC=372).plot.contourf(levels=19,
+    da.isel(XC=372).plot.contourf(levels=19,
         ax=axb, cmap=cmap, vmin=vmin, vmax=vmax, add_colorbar=False)
     for ax in [axa, axb]:
         ax.set_ylabel('')
