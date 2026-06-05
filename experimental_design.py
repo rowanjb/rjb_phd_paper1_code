@@ -51,7 +51,7 @@ import xmitgcm.utils
 #    heat upwards); additional simulations with different thermocline/
 #    pycnocline slopes would also be a good idea
 # 13) Restoring sponges: Not really necessary for short-term simulations
-#    unless there are waves to damp
+#    unless there are waves to damp, but I will test them
 
 
 # == Forcing time and forcing magnitude:
@@ -95,10 +95,10 @@ import xmitgcm.utils
 # cooling, regardless of the freezing curve, because as noted heat
 # flux is regardless limited by the freezing point.
 
-def run_ctc():
+def run_ctc(Nr=99):
     """Run the cell thickness calculator in the case that variable
     cell thicknesses are desired."""
-    Nr = 99  # Number of vertical cells
+    #Nr = 99  # Number of vertical cells
     bottom = 396  # Depth of the bottom of the bottom cell
     x1, x2 = 1, Nr  # Indices of top and bottom cells
     fx1 = 1  # Depth of bottom of top cell (i.e., its thickness)
@@ -162,7 +162,7 @@ def initial_profiles(ds, Nx, Ny, Nr, dr):
 
     # Calculate the depths of each cell
     if dr == "variable":
-        depths = run_ctc()
+        depths = run_ctc(Nr=Nr)
     else:  # Else, depths should be at the mid points of the cells
         depths = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
 
@@ -281,7 +281,7 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
     [ice growth in 1 day] = a * sqrt[freezing-degree days], where a is
     usually taken as 0.033 m / sqrt(C day)
     E.g., with an air temperature of -15.15 C (ERA5 on Sep 12, 2021) we
-    get 0.1201 m of ice after 1 day. 
+    get 0.1201 m of ice after 1 day.
     In our sims, we cease forcing for some hours at the end to let the
     water reorganise itself.
     Parameters:
@@ -424,11 +424,13 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
 
     # Initial profiles
     if dr == "variable":
-        zcoord = run_ctc()
+        zcoord = run_ctc(Nr=Nr)
+        #print(zcoord)
+        #print(np.diff(zcoord))
     else:  # Else, depths should be at the mid points of the cells
         zcoord = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
-    print(np.shape(zcoord))
-    print(np.shape(pt))
+    #print(np.shape(zcoord))
+    #print(np.shape(pt))
     ax[2][2].plot(pt[:, int(Nx/2), int(Ny/2)], zcoord, c='r')
     ax[2][2].set_xlabel("Pot. temp. ($℃$) (red)")
     ax[2][2].set_ylabel("Depth ($m$)")
@@ -490,7 +492,7 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
 
     # Initial profiles
     if dr == "variable":
-        zcoord = run_ctc()
+        zcoord = run_ctc(Nr=Nr)
     else:  # Else, depths should be at the mid points of the cells
         zcoord = np.arange((-1)*(dr/2), (-1)*(Nr)*dr-(dr/2), (-1)*dr)
 
@@ -542,7 +544,7 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
 
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "128"
+    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "144"
     forcing_time, integration_time, lead_position = 24, 72, 'centre'
     stefan_coeff = 0.037
     ds = mtsa.open_mooring_data()

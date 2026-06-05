@@ -83,30 +83,69 @@ runid=mrb_111, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_widt
 -> 3D small domain with U and V sponges
 
 
+NEW TEST RUNS:
 
-runid=mrb_119, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
--> First basic run for the paper serving as a baseline for other runs
-
-runid=mrb_120, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
-
-runid=mrb_121, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
-
-runid=mrb_122, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-6, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
-
-runid=mrb_123, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=200m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
-
-runid=mrb_124, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.87,
-
-runid=mrb_125, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=48m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
-
-runid=mrb_126, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.031), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+runid=mrb_119, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, smag3D=1.0E-02, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 runid=mrb_127, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.033 with deltaT=13.25), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 runid=mrb_128, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037 with deltaT=13.25), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 
-runid=mrb_128, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, no heat flux, 
+NEW PAPER RUNS:
+
+runid=mrb_120, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> First basic run for the paper serving as a baseline for other runs
+
+runid=mrb_121, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_122, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-6, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_123, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=200m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_124, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.87,
+
+runid=mrb_125, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=48m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_126, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.031), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_129, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=0W, sf=StefansLaw(0.037 with deltaT=17.25), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_130, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_131, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=1000W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_132, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=2.2, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_133, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.034), forcing_time=24h, total_time=72, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_134, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.84,
+
+runid=mrb_135, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_136, dx=4m, dr=vr, dt=4s, Nx=33, Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_137, dx=4m, dr=vr, dt=4s, Nx=33, Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_138, dx=2m, dr=vr*2, dt=3s, Nx=66, Ny=594, Nr=198, tiles=2x9, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_139, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-3, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_140, dx=8m, dr=vr/2, dt=8s, Nx=13, Ny=119, Nr=45,  tiles=1x4, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+
+runid=mrb_141, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> Mask sides and bottom
+
+runid=mrb_142, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> Mask only bottom
+
+runid=mrb_143, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037 & deltaT=21.25), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> deltaT=21.25
+
+runid=mrb_144, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037 & deltaT=13.25), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> deltaT=13.25
+
+
 
 etc
 
