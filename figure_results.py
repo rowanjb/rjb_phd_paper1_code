@@ -34,18 +34,12 @@ def results():
 
     # Filepaths
     fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/'
-    fps = {
-        'S0': fp + 'mrb_121',
-        'S1': fp + 'mrb_120',
-        'S2': fp + 'mrb_122',
-        'S3': fp + 'mrb_123',
-        'S4': fp + 'mrb_124',
-        'S5': fp + 'mrb_125',
-        'S7': fp + 'mrb_126',
-        'S8': fp + 'mrb_127',
-        'S9': fp + 'mrb_128',
-    }
-    sims = list(fps.keys())
+    sims = [ # what about 'mrb_127', 'mrb_128',?
+        'mrb_121', 'mrb_120', 'mrb_122', 'mrb_123', 'mrb_124', 'mrb_125',
+        'mrb_126', 'mrb_129', 'mrb_130', 'mrb_131', 'mrb_132', 'mrb_133',
+        'mrb_134', 'mrb_135', 'mrb_136', 'mrb_137', 'mrb_138', 'mrb_139',
+        'mrb_140', 'mrb_141', 'mrb_142', 'mrb_143', 'mrb_144']
+    fps = [fp + sim for sim in sims]
 
     # Initialise the plot
     cm = 1/2.54  # Inches to centimeters (since mpl uses inches)
@@ -68,14 +62,14 @@ def results():
         ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
         ds['sigma0'] = gsw.sigma0(ds['S'], ds['CT'])
         return ds
-    ds = open_dataset(fps['S1'])
+    ds = open_dataset(fps[0])
 
     # Plot initial abs salinity
     ds['S'].isel(time=0, YC=10, XC=10).plot(y='Z', ax=ax1, c='k')
 
     # Shading
     z_ent = -112.97  # Calculated manually elsewhere
-    column = ds['S'].isel(time=0, YC=10, XC=10)
+    column = ds['S'].isel(time=0, YC=10, XC=10)  # Arbitrary location
     da = column.sel(Z=slice(0, z_ent))
     y = np.append(da['Z'].to_numpy(), z_ent)
     x1 = np.append(da.to_numpy(), column.interp(Z=z_ent))
@@ -91,15 +85,22 @@ def results():
     da = column.sel(Z=slice(0, z_ent))
     y = np.append(da['Z'].to_numpy(), z_ent)
     x1 = np.append(da.to_numpy(), column.interp(Z=z_ent))
-    x0 = -1.9  # x1[0]
+    x0 = x1[0]  # It's x1[0] not tfreeze because this is the heat you unlock
     ax2.fill_betweenx(y, x0, x1, color='red', alpha=0.4)
 
     # Calculate the heat content
-    def calc_hc(ds, tref=-2):
+    def calc_hc(ds, tref=-1.9):
+        # Note I tested different tref values (incl. -200), and there is
+        # no visual change to the final figure. This is because the
+        # anomaly calcs become
+        #   hc2-hc1 = rho2*cp2*(t2-tref) - rho1*cp1*(t1-tref)
+        #           = rho2*cp2*t2 - rho1*cp1*t1 + tref(-rho2*cp2+rho1*cp1)
+        # where the last term is the only one that matters w/r/t tref, i.e.,
+        # it is scaled by the density anomaly, which is tiny
         ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
         ds['t_exact'] = gsw.t_from_CT(ds['S'], ds['CT'], ds['P'])
         ds['cp'] = gsw.cp_t_exact(ds['S'], ds['t_exact'], ds['P'])
-        ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])        
+        ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])
         ds['HC'] = ds['rho']*ds['cp']*(ds['CT']-tref)*ds['drF']*ds['rA']
         ds['HC_perlevel'] = ds['HC'].sum(['XC', 'YC'])
         return ds  # Units of HC are J (total per cell)
@@ -115,7 +116,7 @@ def results():
         t2 = np.timedelta64(24, 'h')
         elapsed = t2 - t1
 
-        # Then we can calculare the HC anomaly
+        # Then we can calculate the HC anomaly
         da = ds['HC_perlevel'].sel(time=t2) - ds['HC_perlevel'].sel(time=t1)
         hc_anom = da/1e12/da['drF']  # Units become TJ per m of depth
 
@@ -143,46 +144,80 @@ def results():
         return hc_anom, hf, smoothed_ent_hf
 
     # We now run calc_hc_and_hf for all sims, in order to get maxes and mins
-    hc_anom, hf, smoothed_ent_hf = calc_hc_and_hf(ds)
-    hc_anom = hc_anom.to_dataset(name="S1")
-    hf = hf.to_dataset(name="S1")
-    smoothed_ent_hf = smoothed_ent_hf.to_dataset(name="S1")
-    for sim in sims[1:]:
-        new_ds = open_dataset(fps[sim])
+    hc_anom, hf, smoothed_ent_hf = calc_hc_and_hf(ds)  # Start w/S1
+    hc_anom = hc_anom.to_dataset(name="mrb_121")
+    hf = hf.to_dataset(name="mrb_121")
+    smoothed_ent_hf = smoothed_ent_hf.to_dataset(name="mrb_121")
+    for n, sim in enumerate(sims[1:]):
+        if sim == 'mrb_138':
+            new_ds = open_dataset(fps[n+1], dt=3)
+        elif sim == 'mrb_140':
+            new_ds = open_dataset(fps[n+1], dt=8)
+        else:
+            new_ds = open_dataset(fps[n+1])
         hc_anom[sim], hf[sim], smoothed_ent_hf[sim] = calc_hc_and_hf(new_ds)
     for profile in [hc_anom, hf, smoothed_ent_hf]:
         profile['max'] = profile.to_array().max("variable")
         profile['min'] = profile.to_array().min("variable")
 
     # Ax3
+    # Note this is the heat anomaly for the full domain
     for sim in sims[1:]:
-        hc_anom[sim].plot(ax=ax3, y='Z', c=colour)
+        hc_anom[sim].plot(ax=ax3, y='Z', c=colour, lw=0.5)
     ax3.fill_betweenx(
         hc_anom['Z'].to_numpy(),
         hc_anom['min'].to_numpy(),
         hc_anom['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    hc_anom['S1'].plot(ax=ax3, y='Z', c='k')
+    hc_anom['mrb_121'].plot(ax=ax3, y='Z', c='k')
 
     # Ax4
+    # Note this is the heat flux per m2 over the full domain, ie smaller
+    # domains have higher heat fluxes;
     for sim in sims[1:]:
-        hf[sim].plot(ax=ax4, y='Z', c=colour)
+        hf[sim].plot(ax=ax4, y='Z', c=colour, lw=0.5)
     ax4.fill_betweenx(
         hf['Z'].to_numpy(),
         hf['min'].to_numpy(),
         hf['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    hf['S1'].plot(ax=ax4, y='Z', c='k')
+    hf['mrb_121'].plot(ax=ax4, y='Z', c='k')
+    #hf['mrb_135'].plot(ax=ax4, y='Z', c='r')
+    #hf['mrb_137'].plot(ax=ax4, y='Z', c='b')
+    #hf['mrb_138'].plot(ax=ax4, y='Z', c='g')
 
     # Ax5
     for sim in sims[1:]:
-        smoothed_ent_hf[sim].plot(ax=ax5, c=colour)
+        smoothed_ent_hf[sim].plot(ax=ax5, c=colour, lw=0.5)
     ax5.fill_between(
         smoothed_ent_hf['time'].to_numpy(),
         smoothed_ent_hf['min'].to_numpy(),
         smoothed_ent_hf['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    smoothed_ent_hf['S1'].plot(ax=ax5, c='k')
+    smoothed_ent_hf['mrb_121'].plot(ax=ax5, c='k')
+
+    ### # Ax6 (added 23/07/2026)
+    ### # A bit brittle, but conveys the point...
+    ### def ax6_calcs(ds):
+    ###     ds = calc_hc(ds)
+    ###     t1 = np.timedelta64(0, 'h')
+    ###     t2 = np.timedelta64(24, 'h')
+    ###     elapsed = t2 - t1
+    ###     da = ds['HC'].sel(time=t2) - ds['HC'].sel(time=t1)
+    ###     #hc_anom = da/1e12/da['drF']  # Units become TJ per m of depth
+    ###     reverse = slice(None, None, -1)
+    ###     da_hc_cumsum = da.isel(
+    ###         Z=reverse).cumsum(dim="Z").isel(Z=reverse)
+    ###     da_hc_under_50m = da_hc_cumsum.interp(Z=-50)
+    ###     #ds['dt'] = ds['time'].diff('time').astype('timedelta64[s]').astype(int)
+    ###     #hf_pertimestep = ds['HC_change']/(a*ds['dt'])
+    ###     #hf_pertimestep['time'] = hf_pertimestep['time'].dt.total_seconds()/3600
+    ###     #smoothed_ent_hf = hf_pertimestep.rolling(time=5, center=True).mean()
+    ###     #smoothed_ent_hf = smoothed_ent_hf*(-1)
+    ###     return da_hc_under_50m
+    ### ds_ax6 = open_dataset(fps[0])
+    ### da_hc_under_50m = ax6_calcs(ds_ax6)/(24*3600)
+    ### da_hc_under_50m.plot.pcolormesh(ax=ax6)
 
     # Formatting the "profile" panels
     for ax in [ax1, ax2, ax3, ax4]:
@@ -224,11 +259,11 @@ def results():
     # Add maximum heat flux
     maxes = hf.max()
     maxes_np = [maxes[i].to_numpy() for i in list(maxes.keys())]
-    p = abs(min([maxes['S1'].to_numpy() - i for i in maxes_np]))
-    m = abs(max([maxes['S1'].to_numpy() - i for i in maxes_np]))
+    p = abs(min([maxes['mrb_121'].to_numpy() - i for i in maxes_np]))
+    m = abs(max([maxes['mrb_121'].to_numpy() - i for i in maxes_np]))
     ax4.text(
         0.01, 0.3,
-        (r"$HF_{max}=$"+"\n"+str(np.round(maxes['S1'].to_numpy(), 1)) +
+        (r"$HF_{max}=$"+"\n"+str(np.round(maxes['mrb_121'].to_numpy(), 1)) +
          r"$^{+"+str(int(np.round(p, 0)))+r"}_{-"+str(int(np.round(m, 0))) +
          r"}$"+"\n"+"W m$^{-2}$"),
         transform=ax4.transAxes, fontsize=8, color='k')
@@ -249,7 +284,8 @@ def results():
         ds['S'].isel(time=0, XC=10, YC=10),
         ds['pt_freeze'],
         ds['P'])
-    ds = calc_hc(ds, tref=ds['t_freeze_exact'])
+    ########THIS SHOULDN"T BE TFREEZE, IT SHOULD BE X1[0]?
+    ds = calc_hc(ds, tref=x1[0])#ds['t_freeze_exact'])
     hc_column = ds['HC'].isel(time=0, XC=297, YC=17)
     HCe = hc_column.cumsum(dim="Z").interp(Z=z_ent)/ds['rA'].isel(XC=10, YC=10)
     HCe = HCe.values/1e6
@@ -258,10 +294,11 @@ def results():
         transform=ax2.transAxes, fontsize=8, color='red')
 
 
-    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.15, wspace=0.5)
-    plt.savefig("figure_results.pdf")
-    plt.savefig("figure_results.svg", transparent=False)
-    plt.savefig("figure_results.png", dpi=300)
+    plt.subplots_adjust(
+        left=0.1, right=0.95, bottom=0.15, wspace=0.5, hspace=0.5)
+    # plt.savefig("figures/figure_results.pdf")
+    plt.savefig("figures/figure_results.svg", transparent=False)
+    plt.savefig("figures/figure_results.png", dpi=300)
 
 
 if __name__ == "__main__":

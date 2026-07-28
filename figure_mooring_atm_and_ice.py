@@ -182,7 +182,7 @@ def plot_mooring_atm_and_ice():
     for ax in [ax1, ax2, ax7]:
         rect = Rectangle(
             (dt(2021, 8, 29), -50), td(days=14),
-            200, color="#e5e4e4")
+            200, color="#c1c1c1")
         ax.add_patch(rect)
 
     # Fix labels
@@ -293,9 +293,9 @@ def plot_mooring_atm_and_ice():
     # Final stuff and saving
     plt.subplots_adjust(top=0.95, right=0.94, left=0.11, bottom=0.1,
                         hspace=1, wspace=0.5)
-    plt.savefig('figure_mooring_atm_and_ice.svg')
-    plt.savefig('figure_mooring_atm_and_ice.pdf')
-    plt.savefig('figure_mooring_atm_and_ice.png', dpi=300)
+    plt.savefig('figures/figure_mooring_atm_and_ice.svg')
+    # plt.savefig('figures/figure_mooring_atm_and_ice.pdf')
+    plt.savefig('figures/figure_mooring_atm_and_ice.png', dpi=300)
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ def plot_ice_interface_hovm(run):
     plt.tight_layout()
     ax.set_title(
         "Mean surface pot. temp. Hovmöller ("+run+") dx="+str(dx)+" m")
-    plt.savefig("surface_temp_"+run+".png", dpi=600)
+    plt.savefig("figures/surface_temp_"+run+".png", dpi=600)
 
 
 def plot_pt_depth():
@@ -83,7 +83,7 @@ def plot_pt_depth():
     plt.tight_layout()
     plt.legend()
     ax.set_title(r"$HC_{end}-HC_{start}$")
-    plt.savefig("water_col_HC_anom.png", dpi=600)
+    plt.savefig("figures/water_col_HC_anom.png", dpi=600)
 
 
 def plot_surface():
@@ -113,7 +113,7 @@ def plot_surface():
     # ax.set_yticklabels(["0 m", "66 m", "132 m"])  # ["50 m", "125 m", "220 m", "396 m"])
     # ax.set_xticks([])  # 0, 1138, 1238, 2376])
     # ax.set_xticklabels(["0 km", "1.14 km", "1.24 km", "2.38 km"])
-    plt.savefig('old_figs_and_scripts/horiz_temp_srfc2.svg',
+    plt.savefig('figures/old_figs_and_scripts/horiz_temp_srfc2.svg',
                 transparent=True)
 
 
@@ -135,7 +135,7 @@ def plot_profiles():
     ax1.plot(ds['T'].isel(time=-1).mean(['i', 'j']), Z, c='k', ls=':')
     ax2.plot(ds['S'].isel(time=0).mean(['i', 'j']), Z, c='k', ls='-')
     ax2.plot(ds['S'].isel(time=-1).mean(['i', 'j']), Z, c='k', ls=':')
-    plt.savefig('meansTS_profs_102.svg', transparent=True)
+    plt.savefig('figures/meansTS_profs_102.svg', transparent=True)
 
 
 def hc_cumsum():
@@ -176,7 +176,7 @@ def hc_cumsum():
     ax1.grid()
     ax1.legend()
     ax2.legend()
-    plt.savefig("HF_105.svg", transparent=True)
+    plt.savefig("figures/HF_105.svg", transparent=True)
 
 
 if __name__ == "__main__":

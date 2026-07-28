@@ -126,12 +126,20 @@ runid=mrb_135, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=297, Nr=99,  tiles=1x9, lead_widt
 runid=mrb_136, dx=4m, dr=vr, dt=4s, Nx=33, Ny=1188, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 runid=mrb_137, dx=4m, dr=vr, dt=4s, Nx=33, Ny=297, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+runid=mrb_137_1 -> twin to test model setup
 
 runid=mrb_138, dx=2m, dr=vr*2, dt=3s, Nx=66, Ny=594, Nr=198, tiles=2x9, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 runid=mrb_139, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-3, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 runid=mrb_140, dx=8m, dr=vr/2, dt=8s, Nx=13, Ny=119, Nr=45,  tiles=1x4, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> Don't know why I did 13 because it should be closer to 33/2 so obviously the heat anomalies will be lower than expected
+
+runid=mrb_140_1, dx=8m, dr=vr, dt=4s, Nx=17, Ny=149, Nr=99,  tiles=1x3, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> Tried to test if increasing Nr but keeping dx low would help; messed up the data file so this was a dud
+
+runid=mrb_140_2, dx=8m, dr=vr, dt=4s, Nx=17, Ny=149, Nr=99,  tiles=1x3, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+-> Repeat of 140_1 but I will fix the data file 
 
 runid=mrb_141, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 -> Mask sides and bottom
@@ -145,6 +153,7 @@ runid=mrb_143, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width
 runid=mrb_144, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-5, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037 & deltaT=13.25), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 -> deltaT=13.25
 
+runid=mrb_145, dx=16m, dr=vr/2, dt=4s, Nx=9, Ny=74, Nr=45,  tiles=1x2, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 
 etc

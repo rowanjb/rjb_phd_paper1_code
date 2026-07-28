@@ -200,7 +200,7 @@ def initial_profiles(ds, Nx, Ny, Nr, dr):
     ax3.plot(sigma0s, depths, c='blue')
     ax.plot(SAs, depths, c='black')
     ax2.plot(pts, depths, c='red')
-    plt.savefig('tmp_figs/initial_conditions.png', dpi=1200)
+    plt.savefig('figures/tmp_figs/initial_conditions.png', dpi=1200)
 
     # Save binaries
     # Docs say order is Nx Ny Nr, but this works with order='F', and
@@ -296,7 +296,7 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
     # e.g., 36 hours plus 1 more for differentiation
     # Reformulated for hourly integration
     hours = np.arange(integration_time+1)
-    ice_thickness = [stefan_coeff*np.sqrt(i*13.25/24) for i in hours]
+    ice_thickness = [stefan_coeff*np.sqrt(i*17.25/24) for i in hours]
     ice_growth = np.diff(ice_thickness)
 
     # But we only want one day of growth
@@ -313,7 +313,7 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
     ax2.plot(hours[:-1], salt_rejection, c='b')
     ax.set_ylabel("Ice thickness (black line)")
     ax2.set_ylabel("Salt rejection (blue line)")
-    plt.savefig("tmp_figs/plume_sflux.png", dpi=1200)
+    plt.savefig("figures/tmp_figs/plume_sflux.png", dpi=1200)
 
     # Now we can save this as a 3D binary
     # Note we init with 0.0 because we want floats not ints
@@ -338,6 +338,8 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
 def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
                             integration_time):
     """Creates a non-paper quality figure showing the binaries."""
+
+    lead_width=96
 
     fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(14, 14))
 
@@ -445,7 +447,7 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
 
     plt.subplots_adjust(hspace=0.75, wspace=0.75)
     plt.suptitle("Initial conditions and forcings")
-    plt.savefig("binary_overview_"+i+".png")
+    plt.savefig("figures/binary_overview_"+i+".png")
 
 
 def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
@@ -539,12 +541,12 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
     ax5.set_xlim(27.74, 27.84)
 
     plt.subplots_adjust(hspace=0.4, wspace=0.3, bottom=0.18, top=0.78)
-    plt.savefig("science_week_forcings.svg", transparent=True)
+    plt.savefig("figures/science_week_forcings.svg", transparent=True)
 
 
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "144"
+    Nx, Ny, Nr, dx, dr, lead_width, i = 9, 74, 99, 16, 'variable', 100, "146"
     forcing_time, integration_time, lead_position = 24, 72, 'centre'
     stefan_coeff = 0.037
     ds = mtsa.open_mooring_data()

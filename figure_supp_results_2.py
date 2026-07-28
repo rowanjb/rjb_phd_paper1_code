@@ -58,6 +58,7 @@ def results():
 
     # Opening the model dataset
     def open_dataset(fp, dt=4):
+        print("YOU NEED TO SPECIFY DELTA T!!!!!!!")
         ds = xmitgcm.open_mdsdataset(fp, prefix=['S', 'T'], delta_t=dt)
         ds['Z'] = ds['Z'].astype('<f4')
         ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
@@ -203,9 +204,9 @@ def results():
 
     plt.subplots_adjust(
         left=0.1, right=0.95, bottom=0.075, wspace=0.15, hspace=0.25)
-    plt.savefig("figure_supp_results_2.pdf")
-    plt.savefig("figure_supp_results_2.svg", transparent=False)
-    plt.savefig("figure_supp_results_2.png", dpi=300)
+    # plt.savefig("figures/figure_supp_results_2.pdf")
+    plt.savefig("figures/figure_supp_results_2.svg", transparent=False)
+    plt.savefig("figures/figure_supp_results_2.png", dpi=300)
 
 
 if __name__ == "__main__":

@@ -41,13 +41,18 @@ def plot_model_evaluation_hov(fp, dt):
     start = datetime(2021, 9, 13, 12)
 
     # Open the output
-    pref = ['S', 'T', 'U']
+    pref = ['S', 'T', 'U', 'W']
     ds = xmitgcm.open_mdsdataset(fp, prefix=pref, delta_t=dt, ref_date=start)
     ds['Z'] = ds['Z'].astype('<f4')  # Endianness
+    ds['Zl'] = ds['Zl'].astype('<f4')  # Endianness
+    ds['XC'] = ds['XC'].astype('<f4')  # Endianness
+    ds['XG'] = ds['XG'].astype('<f4')  # Endianness
 
     # Streamfunction
-    ds['transp'] = (ds['U']*ds['drF']*ds['dyG']).sum("YC")  # Check if vars are correct
+    ds['transp'] = (ds['U']*ds['drF']*ds['dyG']).sum("YC")  # Check if vars
+    #                                                         are correct
     sf = ds['transp'].cumsum(dim='Z')
+    quiv = ds[['U', 'W']].sum("YC")
 
     # Slice of time (i.e., select a "mooring" location within the domain)
     ds = ds.isel(XC=297, YC=16)
@@ -91,7 +96,7 @@ def plot_model_evaluation_hov(fp, dt):
     # Colours and other misc
     T_min, T_max = -1.8, -0.2
     S_min, S_max = 34.61, 34.79
-    sf_min, sf_max = -100, 100
+    sf_min, sf_max = -80, 80
     T_cmap = mpl.colormaps['Blues_r']
     S_cmap = mpl.colormaps['Oranges']
     sf_cmap = mpl.colormaps['bwr']
@@ -121,6 +126,9 @@ def plot_model_evaluation_hov(fp, dt):
             p = ds[var].sel(Z=d, method='nearest').plot.contourf(
                 x='time', y='Z', ax=a, levels=20, norm=norm, cmap=cm,
                 add_colorbar=False)
+            #ds[var].sel(Z=d, method='nearest').plot.contour(
+            #    x='time', y='Z', ax=a, levels=20, norm=norm, colors='k',
+            #    linewidths=0.5, linestyles='solid')
             a.set_ylim(-220, -50)
         ax[0].set_xlim(start-timedelta(hours=24), start)
         ax[1].set_xlim(start, start+timedelta(hours=36))
@@ -137,6 +145,15 @@ def plot_model_evaluation_hov(fp, dt):
         ax=ax3, levels=20, norm=sf_norm, cmap=sf_cmap, add_colorbar=False)
     sf_bot = sf.sel(time=start+timedelta(hours=t_bot_hrs)).plot.contourf(
         ax=ax6, levels=20, norm=sf_norm, cmap=sf_cmap, add_colorbar=False)
+
+    # Adding the quivers
+    quiv['W'] = quiv.W.interp(Zl=quiv.Z).interp(XC=quiv.XG)
+    quiv = quiv.isel(Z=slice(None, None, 5), XG=slice(None, None, 40))
+    vi, va = 0, 0.6  # vmin and vmax
+    q = quiv.sel(time=start+timedelta(hours=t_top_hrs)).plot.quiver(
+        x='XG', y='Z', u='U', v='W', ax=ax3, scale=5, vmin=vi, vmax=va)
+    quiv.sel(time=start+timedelta(hours=t_bot_hrs)).plot.quiver(
+        x='XG', y='Z', u='U', v='W', ax=ax6, scale=5, vmin=vi, vmax=va)
 
     # Handling formatting etc.
     axes = [ax1[0], ax1[1], ax2[0], ax2[1],
@@ -204,18 +221,20 @@ def plot_model_evaluation_hov(fp, dt):
     add_colourbar(
         ax2[0], moord_s, "Absolute salinity (g kg$^{-1}$)",
         [34.61, 34.67, 34.73, 34.79])
-    
-    # Colourbar for the streamfunctions
+
+    # Colourbar for the streamfunctions etc
     axins = inset_axes(
         ax3, width="90%", height="5%", loc="upper center", borderpad=0,
         bbox_to_anchor=(0, 0., 1, 1.35), bbox_transform=ax3.transAxes)
     cbar = fig.colorbar(sf_top, orientation='horizontal', cax=axins)
-    cbar.ax.set_xticks([-100, -50, 0, 50, 100])
+    cbar.ax.set_xticks([-80, -40, 0, 40, 80])
     cbar.solids.set_edgecolor("face")
     cbar.ax.tick_params(labelsize=8)
     cbar.ax.text(
         0.5, 1.5, "Across-lead\nstreamfunction (m$^3$ s$^{-1}$)",
-        transform=cbar.ax.transAxes, fontsize=8, ha='center') 
+        transform=cbar.ax.transAxes, fontsize=8, ha='center')
+    ax3.quiverkey(q, X=0.8, Y=0.187, U=va, label=str(va)+' m s$^{-1}$',
+                  labelpos='S', fontproperties={'size': 8})
 
     # Finally some annotations
     def add_annots(ax, label, c):
@@ -260,13 +279,12 @@ def plot_model_evaluation_hov(fp, dt):
     add_letter(ax6,    0.11,  0.95, '(f)')
 
     plt.subplots_adjust(hspace=0.4, wspace=0.5, top=0.8, left=0.1, right=0.93)
-    plt.savefig("figure_model_eval.pdf")
-    plt.savefig("figure_model_eval.svg", transparent=True)
-    plt.savefig("figure_model_eval.png", dpi=300)
+    # plt.savefig("figures/figure_model_eval.pdf")
+    plt.savefig("figures/figure_model_eval.svg", transparent=False)
+    plt.savefig("figures/figure_model_eval.png", dpi=300)
     plt.clf()
 
 
 if __name__ == "__main__":
     fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
-    #fp = "../MITgcm/so_plumes/mrb_121"
     plot_model_evaluation_hov(fp, dt=4)

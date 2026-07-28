@@ -75,7 +75,7 @@ def relax_mask(example_bin, Nx, Ny, Nr, side_cells, side_max_M, bottom_cells,
     fig, ax = plt.subplots()
     cs = ax.pcolormesh(M[:, Nx//2, :])
     cbar = fig.colorbar(cs)
-    plt.savefig('relax_mask.png')
+    plt.savefig('figures/relax_mask.png')
 
 
 def tmp_test_relax_mask():
@@ -84,7 +84,7 @@ def tmp_test_relax_mask():
     ds['Z'] = ds['Z'].astype('<f4')
 
     ds['TOTUTEND'].isel(time=14, Z=15).plot.pcolormesh()
-    plt.savefig('test.png')
+    plt.savefig('figures/test.png')
 
 
 if __name__ == "__main__":

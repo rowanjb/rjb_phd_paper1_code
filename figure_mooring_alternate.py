@@ -1,4 +1,5 @@
 # Function plotting the data relating to the Weddell Sea mooring.
+# THIS IS PROBABLY DELETABLE 
 
 import analysis_mooring_time_series as amts
 import xarray as xr
@@ -48,17 +49,16 @@ def plot_mooring(ds):
     S_min, S_max = 34.61, 34.79
     T_cmap = mpl.colormaps['Blues_r']
     S_cmap = mpl.colormaps['Oranges']
-    T_title = '(a) In situ temperature'
-    dTdt_title = "(b) Temperature rate of change, $dT/dt$"
-    S_title = '(c) Absolute salinity'
-    dSdt_title = "(d) Salinity rate of change, $dS/dt$"
+    a_title = '(a) September 2021'
+    b_title = "(b) Full year"
+    c_title = '(c) September 2021'
+    d_title = "(d) Full year"
     T_units = '℃'
-    dTdt_units = '℃ d$^{-1}$'
     S_units = 'g kg$^{-1}$'
-    dSdt_units = 'g kg$^{-1}$ d$^{-1}$'
     T_norm = plt.Normalize(T_min, T_max)
     S_norm = plt.Normalize(S_min, S_max)
     dates = (datetime(2021, 9, 1, 0), datetime(2021, 10, 1, 0))
+    dates_yr = (datetime(2021, 4, 1, 0), datetime(2022, 4, 1, 0))
     T_ticks = [-1.8, -1.4, -1.0, -0.6, -0.2]
     T_labels = ['-1.8', '-1.4', '-1.0', '-0.6', '-0.2']
     S_ticks = [34.61, 34.67, 34.73, 34.79]
@@ -100,45 +100,21 @@ def plot_mooring(ds):
     spec_line(da, ax2, S_max, minmax=True)
     ax2.set_xlim(dates)
 
-    # Filter wrapper for smoothing the high-freq d/dt data
-    def savgol_plotter(ds, var, d, ax, deriv=1, window=36, po=3, delta=2/24):
-        cmap_query = {
-            -50: (0/256, 0/256, 0/256),
-            -125: (112/256, 160/256, 205/256),
-            -220: (196/256, 121/256, 0/256)}
-        ls_query = {-50: '-', -125: "-", -220: '-'}
-        da = ds[var].sel(depth=d)
-        da_filtered = savgol_filter(
-            da.values, window_length=window, polyorder=po, deriv=deriv,
-            delta=delta)
-        new_da = xr.DataArray(da_filtered, {'time': da['time']})
-        new_da = new_da.sel(
-            time=slice(datetime(2021, 9, 1), datetime(2021, 9, 21)))
-        colour = cmap_query[d]
-        ls = ls_query[d]
-        p, = new_da.plot(ax=ax, c=colour, lw=1, label=d, ls=ls)
-        ax.set_xlim(datetime(2021, 9, 1), datetime(2021, 9, 21))
-        return p
+    # ax3
+    da = ds['T'].sel(depth=[-50, -125, -220])
+    p1a = plotter(da, ax3, T_norm, T_cmap)
+    spec_line(da, ax3, T_min, minmax=True)
+    spec_line(da, ax3, -1.3)
+    spec_line(da, ax3, T_max, minmax=True)
+    #ax3.set_xlim(dates_yr)
 
-    # ax3: temperature ROC
-    pT5 = savgol_plotter(ds, 'T', -220, ax3)
-    label5 = "220 m"# (T, S)"
-    pT3 = savgol_plotter(ds, 'T', -125, ax3)
-    label3 = "125 m"# (T, S)"
-    pT1 = savgol_plotter(ds, 'T', -50, ax3)
-    label1 = "50 m"# (T, S)"
-
-    # ax4: salinity ROC
-    pS3 = savgol_plotter(ds, 'SA', -220, ax4)
-    pS2 = savgol_plotter(ds, 'SA', -125, ax4)
-    pS1 = savgol_plotter(ds, 'SA', -50, ax4)
-
-    # Highlighting the modelled period
-    for ax in [ax3, ax4]:
-        rect = Rectangle(
-            (datetime(2021, 9, 13, 12), -1), timedelta(hours=72),
-            2, color="#c1c1c1")
-        ax.add_patch(rect)
+    # ax4
+    da = ds['SA'].sel(depth=[-50, -125, -220])
+    p2a = plotter(da, ax4, S_norm, S_cmap)
+    spec_line(da, ax4, S_min, minmax=True)
+    spec_line(da, ax4, 34.65)
+    spec_line(da, ax4, S_max, minmax=True)
+    #ax4.set_xlim(dates_yr)
 
     # Hide unnecessary axis labels and add grid and ticks etc etc
     for ax in [ax1, ax2, ax3, ax4]:
@@ -154,19 +130,19 @@ def plot_mooring(ds):
             datetime(2021, 9, 1), datetime(2021, 9, 7), datetime(2021, 9, 14),
             datetime(2021, 9, 21), datetime(2021, 9, 28)])
         ax.set_xticklabels(['Sep', '7', '14', '21', '28'])
-    for ax in [ax3, ax4]:
-        ax.set_ylabel('')
-        ax.set_xlabel('')
-        ax.grid(zorder=3)
-        ax.set_xticks([
-            datetime(2021, 9, 1), datetime(2021, 9, 3), datetime(2021, 9, 5),
-            datetime(2021, 9, 7), datetime(2021, 9, 9), datetime(2021, 9, 11),
-            datetime(2021, 9, 13), datetime(2021, 9, 15), datetime(2021, 9, 17),
-            datetime(2021, 9, 19), datetime(2021, 9, 21)])
-        ax.set_xticklabels(
-            ['Sep', '03', '05', '07', '09', '11', '13', '15', '17', '19', '21'])
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+    #for ax in [ax3, ax4]:
+    #    ax.set_ylabel('')
+    #    ax.set_xlabel('')
+    #    ax.grid(zorder=3)
+    #    ax.set_xticks([
+    #        datetime(2021, 9, 1), datetime(2021, 9, 3), datetime(2021, 9, 5),
+    #        datetime(2021, 9, 7), datetime(2021, 9, 9), datetime(2021, 9, 11),
+    #        datetime(2021, 9, 13), datetime(2021, 9, 15), datetime(2021, 9, 17),
+    #        datetime(2021, 9, 19), datetime(2021, 9, 21)])
+    #    ax.set_xticklabels(
+    #        ['Sep', '03', '05', '07', '09', '11', '13', '15', '17', '19', '21'])
+    #    ax.spines['top'].set_visible(False)
+    #    ax.spines['right'].set_visible(False)
 
     # Colourbars
     def mk_cbar(ax, p, units, xticks, xticklabels):
@@ -179,30 +155,22 @@ def plot_mooring(ds):
         c.ax.set_xticks(xticks)
         c.ax.set_xticklabels(xticklabels)
         c.ax.tick_params(labelsize=8, rotation=0)
-    mk_cbar(ax1, p1a, T_title + ' (' + T_units + ')', T_ticks, T_labels)
-    mk_cbar(ax2, p2a, S_title + ' (' + S_units + ')', S_ticks, S_labels)
+    mk_cbar(ax1, p1a, a_title + ' (' + T_units + ')', T_ticks, T_labels)
+    mk_cbar(ax2, p2a, c_title + ' (' + S_units + ')', S_ticks, S_labels)
 
     # Add title annotations
-    ax3.set_title(dTdt_title, fontsize=8)
-    ax4.set_title(dSdt_title, fontsize=8)
-    ax3.set_ylabel(dTdt_units, fontsize=8)
-    ax4.set_ylabel(dSdt_units, fontsize=8)
-
-    # Legend
-    handles = [pT1, pT3, pT5]
-    labels = [label1, label3, label5]
-    ax4.legend(
-        handles, labels, loc='lower center', bbox_to_anchor=(0.5, 1.3),
-        title='Sensor depth', title_fontsize=8,
-        frameon=False, fontsize=8, ncol=3)
+    ax3.set_title(b_title, fontsize=8)
+    ax4.set_title(d_title, fontsize=8)
+    ax3.set_ylabel(T_units, fontsize=8)
+    ax4.set_ylabel(S_units, fontsize=8)
 
     # Adjust spacing
     plt.subplots_adjust(left=0.08, hspace=1, wspace=2, right=0.95, top=0.84)
 
     # Saving
-    # plt.savefig('figures/figure_mooring.pdf', transparent=False, dpi=600)
-    plt.savefig('figures/figure_mooring.svg', transparent=False, dpi=600)
-    plt.savefig('figures/figure_mooring.png', dpi=600)
+    # plt.savefig('figures/figure_mooring_alternate.pdf', transparent=False, dpi=600)
+    plt.savefig('figures/figure_mooring_alternate.svg', transparent=False, dpi=600)
+    plt.savefig('figures/figure_mooring_alternate.png', dpi=600)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,42 @@ import xmitgcm
 import gsw
 
 
+# Opening the model dataset
+def open_dataset(fp, dt=4):
+    ds = xmitgcm.open_mdsdataset(fp, prefix=['S', 'T'], delta_t=dt)
+    ds['Z'] = ds['Z'].astype('<f4')
+    ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
+    ds['sigma0'] = gsw.sigma0(ds['S'], ds['CT'])
+    return ds
+
+
+# Calculte the vertical heat flux
+def calc_hc(ds):
+
+    # Calculate the heat content
+    def calc_h(ds, tref=-2):
+        ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
+        ds['t_exact'] = gsw.t_from_CT(ds['S'], ds['CT'], ds['P'])
+        ds['cp'] = gsw.cp_t_exact(ds['S'], ds['t_exact'], ds['P'])
+        ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])
+        ds['HC'] = ds['rho']*ds['cp']*(ds['CT']-tref)*ds['drF']*ds['rA']
+        ds['HC_perlevel'] = ds['HC'].sum(['XC', 'YC'])
+        return ds  # Units of HC are J (total per cell)
+
+    # First calc the hc
+    ds = calc_h(ds)
+
+    # Next define the start and end of forcing
+    t1 = np.timedelta64(0, 'h')
+    t2 = np.timedelta64(24, 'h')
+
+    # Calculare the HC change
+    da = ds['HC_perlevel'].sel(time=t2) - ds['HC_perlevel'].sel(time=t1)
+    hc_anom = da/1e12/da['drF']  # Units become TJ per m of depth
+
+    return hc_anom
+
+
 def results():
     """Function for creating the 'results' figure."""
 
@@ -58,40 +94,6 @@ def results():
         (178/256, 178/256, 178/256),
     ]
 
-    # Opening the model dataset
-    def open_dataset(fp, dt=4):
-        ds = xmitgcm.open_mdsdataset(fp, prefix=['S', 'T'], delta_t=dt)
-        ds['Z'] = ds['Z'].astype('<f4')
-        ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
-        ds['sigma0'] = gsw.sigma0(ds['S'], ds['CT'])
-        return ds
-
-    # Calculte the vertical heat flux
-    def calc_hc(ds):
-
-        # Calculate the heat content
-        def calc_h(ds, tref=-2):
-            ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
-            ds['t_exact'] = gsw.t_from_CT(ds['S'], ds['CT'], ds['P'])
-            ds['cp'] = gsw.cp_t_exact(ds['S'], ds['t_exact'], ds['P'])
-            ds['rho'] = gsw.rho(ds['S'], ds['CT'], ds['P'])
-            ds['HC'] = ds['rho']*ds['cp']*(ds['CT']-tref)*ds['drF']*ds['rA']
-            ds['HC_perlevel'] = ds['HC'].sum(['XC', 'YC'])
-            return ds  # Units of HC are J (total per cell)
-
-        # First calc the hc
-        ds = calc_h(ds)
-
-        # Next define the start and end of forcing
-        t1 = np.timedelta64(0, 'h')
-        t2 = np.timedelta64(24, 'h')
-
-        # Calculare the HC change
-        da = ds['HC_perlevel'].sel(time=t2) - ds['HC_perlevel'].sel(time=t1)
-        hc_anom = da/1e12/da['drF']  # Units become TJ per m of depth
-
-        return hc_anom
-
     # ax1
     ax = ax1
     calc_hc(open_dataset(fps('132'))).plot(y='Z', ax=ax, c=colours[0], label='2.2')
@@ -125,7 +127,9 @@ def results():
 
     # ax6
     ax = ax6
-    calc_hc(open_dataset(fps('140'), dt=8)).plot(y='Z', ax=ax, c=colours[0], label='$dx=$8 m\n45 levels')
+    calc_hc(open_dataset(fps('140_2'))).plot(y='Z', ax=ax, c=colours[0], label='$dx=$8 m\n99 levels')
+    calc_hc(open_dataset(fps('145'), dt=8)).plot(y='Z', ax=ax, c='b', label='$dx=$16 m\n45 levels')
+    calc_hc(open_dataset(fps('146'), dt=8)).plot(y='Z', ax=ax, c='b', label='$dx=$16 m\n99 levels')
     calc_hc(open_dataset(fps('137'))).plot(y='Z', ax=ax, c=colours[1], label='$dx=$4 m\n99 levels')
     calc_hc(open_dataset(fps('138'), dt=3)).plot(y='Z', ax=ax, c=colours[2], label='$dx=$2 m\n198 levels')
 
@@ -197,10 +201,24 @@ def results():
 
     plt.subplots_adjust(
         left=0.1, right=0.95, bottom=0.075, wspace=0.15, hspace=0.25)
-    plt.savefig("figure_supp_results_1.pdf")
-    plt.savefig("figure_supp_results_1.svg", transparent=False)
-    plt.savefig("figure_supp_results_1.png", dpi=300)
+    # plt.savefig("figures/figure_supp_results_1.pdf")
+    plt.savefig("figures/figure_supp_results_1.svg", transparent=False)
+    plt.savefig("figures/figure_supp_results_1.png", dpi=300)
+
+
+def calcs_for_SCAR():
+    """Deletable"""
+
+    # Filepaths
+    fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121'
+
+    da = calc_hc(open_dataset(fp))
+    da = da*da['drF']  # Convert to heat per layer
+    da = da.cumsum()
+    print(da.interp(Z=-113).to_numpy())
+    #print(da.where(da.Z > -113, drop=True).sum().to_numpy())
 
 
 if __name__ == "__main__":
-    results()
+    #results()
+    calcs_for_SCAR()

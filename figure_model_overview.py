@@ -167,10 +167,10 @@ def plot_model_overview():
     ax6.set_yticks([0, -50, -125, -220])
     ax6.set_yticklabels(['0 m', '50 m', '125 m', '220 m'])
     ax6.set_ylim([-220, 0])
-    ax6.set_xlim([594*2-300, 594*2+300])
-    ax6.set_xticks([594*2-300, 594*2, 594*2+300])
+    ax6.set_xlim([594*2-296, 594*2+296])
+    ax6.set_xticks([594*2-296, 594*2, 594*2+296])
     ax6.set_xticklabels(
-        [str(594*2-300)+' m', str(594*2)+' m', str(594*2+300)+' m'])
+        [str(594*2-296)+' m', str(594*2)+' m', str(594*2+296)+' m'])
     ax6.set_xlabel('')
     ax6.set_ylabel('')
 
@@ -195,7 +195,7 @@ def plot_model_overview():
         ax.set_title('')
     axa.set_yticks([0, 66, 132])
     axa.set_yticklabels(['0 m', '66 m', '132 m'])
-    axa.set_xlim([594*2-300, 594*2+300])
+    axa.set_xlim([594*2-296, 594*2+296])
     axb.set_ylim([-220, 0])
 
     # Adding titles etc
@@ -255,9 +255,9 @@ def plot_model_overview():
 
     plt.subplots_adjust(
         right=0.97, left=0.1, hspace=0.5, wspace=0.4, top=0.95, bottom=0.085)
-    plt.savefig("figure_model_overview.png", dpi=500)
-    plt.savefig("figure_model_overview.svg")
-    plt.savefig("figure_model_overview.pdf")
+    plt.savefig("figures/figure_model_overview.png", dpi=500)
+    plt.savefig("figures/figure_model_overview.svg")
+    # plt.savefig("figures/figure_model_overview.pdf")
 
 
 if __name__ == "__main__":
