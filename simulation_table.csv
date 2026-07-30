@@ -98,6 +98,7 @@ runid=mrb_120, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_widt
 -> First basic run for the paper serving as a baseline for other runs
 
 runid=mrb_121, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
+runid=mrb_121_1; repeated twin of above to test different deltaT (here: 17.25)
 
 runid=mrb_122, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-6, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
@@ -136,7 +137,7 @@ runid=mrb_140, dx=8m, dr=vr/2, dt=8s, Nx=13, Ny=119, Nr=45,  tiles=1x4, lead_wid
 -> Don't know why I did 13 because it should be closer to 33/2 so obviously the heat anomalies will be lower than expected
 
 runid=mrb_140_1, dx=8m, dr=vr, dt=4s, Nx=17, Ny=149, Nr=99,  tiles=1x3, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
--> Tried to test if increasing Nr but keeping dx low would help; messed up the data file so this was a dud
+-> Tried to test if increasing Nr but keeping dx low would help; messed up the data file (left dx=4 accidentally) so this was a dud
 
 runid=mrb_140_2, dx=8m, dr=vr, dt=4s, Nx=17, Ny=149, Nr=99,  tiles=1x3, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 -> Repeat of 140_1 but I will fix the data file 
@@ -155,6 +156,7 @@ runid=mrb_144, dx=4m, dr=vr, dt=4s, Nx=33, Ny=594, Nr=99,  tiles=1x9, lead_width
 
 runid=mrb_145, dx=16m, dr=vr/2, dt=4s, Nx=9, Ny=74, Nr=45,  tiles=1x2, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
+runid=mrb_146, dx=16m, dr=vr, dt=4s, Nx=9, Ny=74, Nr=99,  tiles=1x2, lead_width=100m, viscC2Smag=none, viscAz=2.E-4, viscAh=1.E-2, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 
 etc
 
