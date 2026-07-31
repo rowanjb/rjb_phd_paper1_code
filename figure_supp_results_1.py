@@ -187,7 +187,7 @@ def results():
     ax1.set_yticklabels(['396 m', '220 m', '125 m', '50 m', '0 m'])
     ax6.set_yticklabels(['396 m', '220 m', '125 m', '50 m', '0 m'])
 
-    plt.suptitle("Parameter dependence of mean vertical heat flux", fontsize=8)
+    plt.suptitle("Parameter dependence of mean vertical heat anomaly", fontsize=8)
     ax1.set_title("(a) 2D Smagorinsky\ncoefficient", fontsize=8)
     ax2.set_title("(b) Vertical eddy\nviscosity", fontsize=8)
     ax3.set_title("(c) Lead\nwidth*", fontsize=8)
@@ -206,19 +206,5 @@ def results():
     plt.savefig("figures/figure_supp_results_1.png", dpi=300)
 
 
-def calcs_for_SCAR():
-    """Deletable"""
-
-    # Filepaths
-    fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121'
-
-    da = calc_hc(open_dataset(fp))
-    da = da*da['drF']  # Convert to heat per layer
-    da = da.cumsum()
-    print(da.interp(Z=-113).to_numpy())
-    #print(da.where(da.Z > -113, drop=True).sum().to_numpy())
-
-
 if __name__ == "__main__":
-    #results()
-    calcs_for_SCAR()
+    results()

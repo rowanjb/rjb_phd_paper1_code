@@ -4,7 +4,6 @@
 # Rowan Brown, July 2026
 
 import f90nml
-import glob
 import re
 import numpy as np
 import scipy
@@ -185,7 +184,7 @@ def mixed_layer(ds, method="gradient", threshold=0.03, ref_depth=10):
 
 if __name__ == "__main__":
     simulations = [
-        'mrb_121', 'mrb_121_1', 'mrb_122', 'mrb_123', 'mrb_124',
+        'mrb_120_1', 'mrb_121_1', 'mrb_122', 'mrb_123', 'mrb_124',
         'mrb_125', 'mrb_126', 'mrb_129', 'mrb_130', 'mrb_131',
         'mrb_132', 'mrb_133', 'mrb_134', 'mrb_135', 'mrb_136',
         'mrb_137', 'mrb_138', 'mrb_139', 'mrb_140_2', 'mrb_141',

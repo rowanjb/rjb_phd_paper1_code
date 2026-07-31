@@ -279,9 +279,8 @@ def plot_model_evaluation_hov(fp, dt):
     add_letter(ax6,    0.11,  0.95, '(f)')
 
     plt.subplots_adjust(hspace=0.4, wspace=0.5, top=0.8, left=0.1, right=0.93)
-    # plt.savefig("figures/figure_model_eval.pdf")
-    plt.savefig("figures/figure_model_eval.svg", transparent=False)
-    plt.savefig("figures/figure_model_eval.png", dpi=300)
+    plt.savefig("figures/figure_model_eval_1.svg", transparent=False)
+    plt.savefig("figures/figure_model_eval_1.png", dpi=300)
     plt.clf()
 
 
