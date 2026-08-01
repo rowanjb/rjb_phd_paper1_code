@@ -273,7 +273,8 @@ def forcing_Q(Nx, Ny, dx, lead_width, forcing_time=24, integration_time=36,
 
 
 def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
-                 integration_time=36, lead_position='centre'):
+                 deltaT=17.25, integration_time=36,
+                 lead_position='centre'):
     """We base our ice growth rate on Stefan's Law. The coefficient
     formulation or Cammaert and Muggeridge (1988) is most intuitive.
     Leppäranta (1993) provides a detailed overview of Stefan's (1891)
@@ -284,19 +285,12 @@ def forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time=24,
     get 0.1201 m of ice after 1 day.
     In our sims, we cease forcing for some hours at the end to let the
     water reorganise itself.
-    Parameters:
-        Nx, Ny: Number of grid points
-        dx: Grid spacing (m), assumed to be square cells
-        lead_width: Lead width in m (assumed parallel opening)
-            *lead width will get rounded to the nearest cell
-        stefan_coeff: Coefficient for Stefan's law
-    Returns:
-        Saves binary for MITgcm"""
+    """
 
     # e.g., 36 hours plus 1 more for differentiation
     # Reformulated for hourly integration
     hours = np.arange(integration_time+1)
-    ice_thickness = [stefan_coeff*np.sqrt(i*17.25/24) for i in hours]
+    ice_thickness = [stefan_coeff*np.sqrt(i*deltaT/24) for i in hours]
     ice_growth = np.diff(ice_thickness)
 
     # But we only want one day of growth
@@ -339,7 +333,7 @@ def plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
                             integration_time):
     """Creates a non-paper quality figure showing the binaries."""
 
-    #lead_width=96
+    # lead_width=48
 
     fig, ax = plt.subplots(ncols=3, nrows=3, figsize=(14, 14))
 
@@ -546,9 +540,9 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
 
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "121_1"
+    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "126_1"
     forcing_time, integration_time, lead_position = 24, 72, 'centre'
-    stefan_coeff = 0.037
+    stefan_coeff, deltaT = 0.031, 17.25
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)
     ds = mtsa.append_gsw_vars(ds)
