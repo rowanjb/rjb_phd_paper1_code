@@ -235,7 +235,7 @@ def initial_eta(Nx, Ny):
 
 
 def forcing_Q(Nx, Ny, dx, lead_width, forcing_time=24, integration_time=36,
-              lead_position='centre'):
+              Qforc=200, lead_position='centre'):
     """For now we assume 1 day of forcing followed by the
     reorganization of layers. We let the forcing be some high value
     like 200 W/m2 (this is supported in the literature), because
@@ -249,7 +249,7 @@ def forcing_Q(Nx, Ny, dx, lead_width, forcing_time=24, integration_time=36,
     Returns:
         Saves binary for MITgcm"""
 
-    Q = np.full(integration_time, 200)
+    Q = np.full(integration_time, Qforc)
     Q[forcing_time+1:] = 0
 
     # Now we can save this as a 3D binary
@@ -542,7 +542,7 @@ if __name__ == "__main__":
 
     Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "126_1"
     forcing_time, integration_time, lead_position = 24, 72, 'centre'
-    stefan_coeff, deltaT = 0.031, 17.25
+    stefan_coeff, deltaT, Qforc = 0.031, 17.25, 200
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)
     ds = mtsa.append_gsw_vars(ds)
