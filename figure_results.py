@@ -7,7 +7,7 @@ import xmitgcm
 import gsw
 
 
-def results():
+def results(runid, z_ent, tb):
     """Function for creating the 'results' figure."""
 
     # IPCC-adjacent formatting according to ChatGPT
@@ -34,11 +34,12 @@ def results():
 
     # Filepaths
     fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/'
-    sims = [ # what about 'mrb_127', 'mrb_128',?
-        'mrb_121', 'mrb_120', 'mrb_122', 'mrb_123', 'mrb_124', 'mrb_125',
-        'mrb_126', 'mrb_129', 'mrb_130', 'mrb_131', 'mrb_132', 'mrb_133',
-        'mrb_134', 'mrb_135', 'mrb_136', 'mrb_137', 'mrb_138', 'mrb_139',
-        'mrb_140', 'mrb_141', 'mrb_142', 'mrb_143', 'mrb_144']
+    sims = [
+        'mrb_121', 'mrb_121_1', 'mrb_120_1', 'mrb_122_1', 'mrb_123_1',
+        'mrb_124_1', 'mrb_125_1', 'mrb_126_1', 'mrb_129', 'mrb_130',
+        'mrb_131', 'mrb_132', 'mrb_133', 'mrb_134', 'mrb_135',
+        'mrb_136', 'mrb_137', 'mrb_138', 'mrb_139', 'mrb_140',
+        'mrb_141', 'mrb_142', 'mrb_143', 'mrb_144']
     fps = [fp + sim for sim in sims]
 
     # Initialise the plot
@@ -68,7 +69,6 @@ def results():
     ds['S'].isel(time=0, YC=10, XC=10).plot(y='Z', ax=ax1, c='k')
 
     # Shading
-    z_ent = -112.97  # Calculated manually elsewhere
     column = ds['S'].isel(time=0, YC=10, XC=10)  # Arbitrary location
     da = column.sel(Z=slice(0, z_ent))
     y = np.append(da['Z'].to_numpy(), z_ent)
@@ -80,7 +80,6 @@ def results():
     ds['T'].isel(time=0, YC=10, XC=10).plot(y='Z', ax=ax2, c='k')
 
     # Shading
-    z_ent = -112.97
     column = ds['T'].isel(time=0, YC=10, XC=10)
     da = column.sel(Z=slice(0, z_ent))
     y = np.append(da['Z'].to_numpy(), z_ent)
@@ -145,9 +144,9 @@ def results():
 
     # We now run calc_hc_and_hf for all sims, in order to get maxes and mins
     hc_anom, hf, smoothed_ent_hf = calc_hc_and_hf(ds)  # Start w/S1
-    hc_anom = hc_anom.to_dataset(name="mrb_121")
-    hf = hf.to_dataset(name="mrb_121")
-    smoothed_ent_hf = smoothed_ent_hf.to_dataset(name="mrb_121")
+    hc_anom = hc_anom.to_dataset(name=runid)
+    hf = hf.to_dataset(name=runid)
+    smoothed_ent_hf = smoothed_ent_hf.to_dataset(name=runid)
     for n, sim in enumerate(sims[1:]):
         if sim == 'mrb_138':
             new_ds = open_dataset(fps[n+1], dt=3)
@@ -169,7 +168,7 @@ def results():
         hc_anom['min'].to_numpy(),
         hc_anom['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    hc_anom['mrb_121'].plot(ax=ax3, y='Z', c='k')
+    hc_anom[runid].plot(ax=ax3, y='Z', c='k')
 
     # Ax4
     # Note this is the heat flux per m2 over the full domain, ie smaller
@@ -181,10 +180,7 @@ def results():
         hf['min'].to_numpy(),
         hf['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    hf['mrb_121'].plot(ax=ax4, y='Z', c='k')
-    #hf['mrb_135'].plot(ax=ax4, y='Z', c='r')
-    #hf['mrb_137'].plot(ax=ax4, y='Z', c='b')
-    #hf['mrb_138'].plot(ax=ax4, y='Z', c='g')
+    hf[runid].plot(ax=ax4, y='Z', c='k')
 
     # Ax5
     for sim in sims[1:]:
@@ -194,30 +190,7 @@ def results():
         smoothed_ent_hf['min'].to_numpy(),
         smoothed_ent_hf['max'].to_numpy(),
         color=colour, alpha=0.4, ec='none')
-    smoothed_ent_hf['mrb_121'].plot(ax=ax5, c='k')
-
-    ### # Ax6 (added 23/07/2026)
-    ### # A bit brittle, but conveys the point...
-    ### def ax6_calcs(ds):
-    ###     ds = calc_hc(ds)
-    ###     t1 = np.timedelta64(0, 'h')
-    ###     t2 = np.timedelta64(24, 'h')
-    ###     elapsed = t2 - t1
-    ###     da = ds['HC'].sel(time=t2) - ds['HC'].sel(time=t1)
-    ###     #hc_anom = da/1e12/da['drF']  # Units become TJ per m of depth
-    ###     reverse = slice(None, None, -1)
-    ###     da_hc_cumsum = da.isel(
-    ###         Z=reverse).cumsum(dim="Z").isel(Z=reverse)
-    ###     da_hc_under_50m = da_hc_cumsum.interp(Z=-50)
-    ###     #ds['dt'] = ds['time'].diff('time').astype('timedelta64[s]').astype(int)
-    ###     #hf_pertimestep = ds['HC_change']/(a*ds['dt'])
-    ###     #hf_pertimestep['time'] = hf_pertimestep['time'].dt.total_seconds()/3600
-    ###     #smoothed_ent_hf = hf_pertimestep.rolling(time=5, center=True).mean()
-    ###     #smoothed_ent_hf = smoothed_ent_hf*(-1)
-    ###     return da_hc_under_50m
-    ### ds_ax6 = open_dataset(fps[0])
-    ### da_hc_under_50m = ax6_calcs(ds_ax6)/(24*3600)
-    ### da_hc_under_50m.plot.pcolormesh(ax=ax6)
+    smoothed_ent_hf[runid].plot(ax=ax5, c='k')
 
     # Formatting the "profile" panels
     for ax in [ax1, ax2, ax3, ax4]:
@@ -259,40 +232,24 @@ def results():
     # Add maximum heat flux
     maxes = hf.max()
     maxes_np = [maxes[i].to_numpy() for i in list(maxes.keys())]
-    p = abs(min([maxes['mrb_121'].to_numpy() - i for i in maxes_np]))
-    m = abs(max([maxes['mrb_121'].to_numpy() - i for i in maxes_np]))
+    p = abs(min([maxes[runid].to_numpy() - i for i in maxes_np]))
+    m = abs(max([maxes[runid].to_numpy() - i for i in maxes_np]))
     ax4.text(
         0.01, 0.3,
-        (r"$HF_{max}=$"+"\n"+str(np.round(maxes['mrb_121'].to_numpy(), 1)) +
+        (r"$HF_{max}=$"+"\n"+str(np.round(maxes[runid].to_numpy(), 1)) +
          r"$^{+"+str(int(np.round(p, 0)))+r"}_{-"+str(int(np.round(m, 0))) +
          r"}$"+"\n"+"W m$^{-2}$"),
         transform=ax4.transAxes, fontsize=8, color='k')
 
     # Add entrainment depth annotation
     ax1.text(
-        0.01, 0.5, r"$z_e=$" + "\n" + str(round((-1)*z_ent, 1)) + " m",
+        0.01, 0.5, "Entrainment\ndepth =\n" + str(round((-1)*z_ent, 1)) + " m",
         transform=ax1.transAxes, fontsize=8, color='darkorange')
 
     # Add entrainment heat annotation
-    # Note in this case, we specifically want the heat released by cooling
-    # from the surface to z_ent until reaching freezing. In most of our
-    # simulations, we use a freezing pot temp of -1.9. Since the HC uses
-    # t_exact, our reference temp needs to be converted from theta=-1.9.
-    ds['P'] = gsw.p_from_z(ds['Z'], -69.0005)
-    ds['pt_freeze'] = ("Z", np.full(99, -1.9))
-    ds['t_freeze_exact'] = gsw.t_from_CT(
-        ds['S'].isel(time=0, XC=10, YC=10),
-        ds['pt_freeze'],
-        ds['P'])
-    ########THIS SHOULDN"T BE TFREEZE, IT SHOULD BE X1[0]?
-    ds = calc_hc(ds, tref=x1[0])#ds['t_freeze_exact'])
-    hc_column = ds['HC'].isel(time=0, XC=297, YC=17)
-    HCe = hc_column.cumsum(dim="Z").interp(Z=z_ent)/ds['rA'].isel(XC=10, YC=10)
-    HCe = HCe.values/1e6
     ax2.text(
-        0.01, 0.5, r"$HC_e=$" + "\n" + str(round(HCe, 1)) + "\nMJ m$^{-2}$",
+        0.01, 0.5, "Thermal\nbarrier =\n" + str(tb) + "\nMJ m$^{-2}$",
         transform=ax2.transAxes, fontsize=8, color='red')
-
 
     plt.subplots_adjust(
         left=0.1, right=0.95, bottom=0.15, wspace=0.5, hspace=0.5)
@@ -302,4 +259,4 @@ def results():
 
 
 if __name__ == "__main__":
-    results()
+    results('mrb_121', -108.5, 112.8)

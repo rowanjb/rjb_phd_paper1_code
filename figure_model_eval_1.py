@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 
-def plot_model_evaluation_hov(fp, dt):
+def plot_model_evaluation_hov(fp, dt, XC, YC):
     """For creating Hovmoeller diagrams of the plume as well as
     streamfunctions showing the accross-lead view."""
 
@@ -55,7 +55,7 @@ def plot_model_evaluation_hov(fp, dt):
     quiv = ds[['U', 'W']].sum("YC")
 
     # Slice of time (i.e., select a "mooring" location within the domain)
-    ds = ds.isel(XC=297, YC=16)
+    ds = ds.isel(XC=XC, YC=YC)
 
     # Add 24 h mean of pre-plume for visualisation purposes
     def add_24h_mean_prof(ds, start):
@@ -133,10 +133,26 @@ def plot_model_evaluation_hov(fp, dt):
         ax[0].set_xlim(start-timedelta(hours=24), start)
         ax[1].set_xlim(start, start+timedelta(hours=36))
         return p
+
+    # For adding a specific black line to really show plume behaviours
+    def spec_line(ds, var, ax, value):
+        d = [-50, -125, -220]
+        for a in ax:
+            ds[var].sel(Z=d, method='nearest').plot.contour(
+                x='time', y='Z', ax=a, levels=1, cmap='Greys',
+                vmin=value, vmax=value,
+                linestyles='solid', linewidths=0.5, add_colorbar=False)
+
+    t_const, s_const = -1.7, 34.64
     model_t = plot_hov(ds, 't', ax4, T_norm, T_cmap, start)
+    #spec_line(ds, 't', ax4, t_const)
     model_s = plot_hov(ds, 'S', ax5, S_norm, S_cmap, start)
+    #spec_line(ds, 'S', ax5, s_const)
+
     moord_t = plot_hov(moords, 'T', ax1, T_norm, T_cmap, start)
+    #spec_line(moords, 'T', ax1, t_const)
     moord_s = plot_hov(moords, 'SA', ax2, S_norm, S_cmap, start)
+    #spec_line(moords, 'SA', ax2, s_const)
 
     # Plotting the streamfunctions
     # (Check that the units make sense?)
@@ -151,9 +167,11 @@ def plot_model_evaluation_hov(fp, dt):
     quiv = quiv.isel(Z=slice(None, None, 5), XG=slice(None, None, 40))
     vi, va = 0, 0.6  # vmin and vmax
     q = quiv.sel(time=start+timedelta(hours=t_top_hrs)).plot.quiver(
-        x='XG', y='Z', u='U', v='W', ax=ax3, scale=5, vmin=vi, vmax=va)
+        x='XG', y='Z', u='U', v='W', ax=ax3, scale=5,  width=0.005,
+        vmin=vi, vmax=va)
     quiv.sel(time=start+timedelta(hours=t_bot_hrs)).plot.quiver(
-        x='XG', y='Z', u='U', v='W', ax=ax6, scale=5, vmin=vi, vmax=va)
+        x='XG', y='Z', u='U', v='W', ax=ax6, scale=5,  width=0.005,
+        vmin=vi, vmax=va)
 
     # Handling formatting etc.
     axes = [ax1[0], ax1[1], ax2[0], ax2[1],
@@ -270,7 +288,7 @@ def plot_model_evaluation_hov(fp, dt):
                 fontsize=8, va='top', ha='right',
                 bbox=dict(facecolor='white', edgecolor='none',
                           boxstyle='circle,pad=0.05',
-                          alpha=0.2))
+                          alpha=0.4))
     add_letter(ax1[0], 0.28, 0.95, '(a)')
     add_letter(ax2[0], 0.28, 0.95, '(b)')
     add_letter(ax3,    0.11,  0.95, '(e)')
@@ -285,5 +303,5 @@ def plot_model_evaluation_hov(fp, dt):
 
 
 if __name__ == "__main__":
-    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
-    plot_model_evaluation_hov(fp, dt=4)
+    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121_3"
+    plot_model_evaluation_hov(fp, dt=4, XC=297, YC=16)

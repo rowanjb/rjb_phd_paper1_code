@@ -159,7 +159,7 @@ def ze_tb(runid):
     print("Entrainment depth (ze): "+str(z_interp)[0:8]+" m")
     print("Thermal barrier (tb): "+str(tb)[0:8]+" MJ/m2")
     print("Domain-wide tb entrainment: "+str(total_tb_entrainment)[:5]+" TJ")
-    print("Modelled flux through ze: "+str(real_flux)[:5]+" TJ")
+    print("Modelled flux through ze: "+str(real_flux)[:6]+" TJ")
 
 
 # Mixed layer function, developed using ChatGPT
@@ -184,11 +184,11 @@ def mixed_layer(ds, method="gradient", threshold=0.03, ref_depth=10):
 
 if __name__ == "__main__":
     simulations = [
-        'mrb_120_1', 'mrb_121_1', 'mrb_122', 'mrb_123', 'mrb_124',
-        'mrb_125', 'mrb_126', 'mrb_129', 'mrb_130', 'mrb_131',
-        'mrb_132', 'mrb_133', 'mrb_134', 'mrb_135', 'mrb_136',
-        'mrb_137', 'mrb_138', 'mrb_139', 'mrb_140_2', 'mrb_141',
-        'mrb_142', 'mrb_143', 'mrb_144', 'mrb_146']
+        'mrb_121_2', 'mrb_121_3', 'mrb_121_1']#, 'mrb_122_1', 'mrb_123_1', 'mrb_124_1',
+        #'mrb_125_1', 'mrb_126_1', 'mrb_129', 'mrb_130', 'mrb_131',
+        #'mrb_132', 'mrb_133', 'mrb_134', 'mrb_135', 'mrb_136',
+        #'mrb_137', 'mrb_138', 'mrb_139', 'mrb_140_2', 'mrb_141',
+        #'mrb_142', 'mrb_143', 'mrb_144', 'mrb_146']
     for runid in simulations:
         ze_tb(runid)
     

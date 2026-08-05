@@ -69,7 +69,7 @@ def plot_model_overview():
     fig.set_figheight(14*cm)
 
     # Open the basic file
-    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121"
+    fp = "../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/mrb_121_1"
     start = datetime(2021, 9, 13, 12)
     pref = ['S', 'T', 'U']
     ds = xmitgcm.open_mdsdataset(fp, prefix=pref, delta_t=4, ref_date=start)

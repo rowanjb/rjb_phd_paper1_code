@@ -540,19 +540,19 @@ def science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff):
 
 if __name__ == "__main__":
 
-    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "126_1"
+    Nx, Ny, Nr, dx, dr, lead_width, i = 33, 594, 99, 4, 'variable', 100, "121_3"
     forcing_time, integration_time, lead_position = 24, 72, 'centre'
-    stefan_coeff, deltaT, Qforc = 0.031, 17.25, 200
+    stefan_coeff, deltaT, Qforc = 0.037, 17.15, 200
     ds = mtsa.open_mooring_data()
     ds = mtsa.correct_mooring_salinities(ds)
     ds = mtsa.append_gsw_vars(ds)
     initial_profiles(ds, Nx, Ny, Nr, dr)
     initial_velocities(Nx, Ny, Nr, dr)
     initial_eta(Nx, Ny)
-    forcing_Q(Nx, Ny, dx, lead_width, forcing_time, integration_time,
+    forcing_Q(Nx, Ny, dx, lead_width, forcing_time, integration_time, Qforc,
               lead_position)
     forcing_salt(Nx, Ny, dx, lead_width, stefan_coeff, forcing_time,
-                 integration_time, lead_position)
+                 deltaT, integration_time, lead_position)
     plot_initial_conditions(Nx, Ny, Nr, dr, lead_width, i, stefan_coeff,
                             integration_time)
     # science_week_forcing(ds, Nx, Ny, Nr, dr, lead_width, i, stefan_coeff)

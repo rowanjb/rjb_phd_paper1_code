@@ -26,7 +26,7 @@ def open_dataset(fp):
     # Note here we're assuming a mooring in the centre of the lead
     dt = get_delta_t(fp)
     ds = xmitgcm.open_mdsdataset(fp, prefix=['S', 'T'], delta_t=dt)
-    ds = ds.isel(XC=int(len(ds['XC'])/2), YC=int(len(ds['YC'])/2))
+    ds = ds.isel(XC=int(len(ds['XC'])/2)).mean('YC')#, YC=int(len(ds['YC'])/3))
     ds['Z'] = ds['Z'].astype('<f4')
     ds['CT'] = gsw.CT_from_pt(ds['S'], ds['T'])
     ds['sigma0'] = gsw.sigma0(ds['S'], ds['CT'])
@@ -89,25 +89,24 @@ def plot_model_evaluation_time_series():
 
     # Plot the model time series
     # The dataframe syntax was helped by ChatGPT
-    simulations = [  # You'll eventually need to update this with the updated list
-        'mrb_121_1', 'mrb_120', 'mrb_122', 'mrb_123', 'mrb_124', 'mrb_125',
-        'mrb_126', 'mrb_129', 'mrb_130', 'mrb_131', 'mrb_132', 'mrb_133',
-        'mrb_134', 'mrb_135', 'mrb_136', 'mrb_137', 'mrb_138', 'mrb_139',
-        'mrb_140', 'mrb_141', 'mrb_142', 'mrb_143', 'mrb_144']
+    sims_df = pd.read_csv(
+        "paper_simulations.csv", sep=r"\s*,\s*", engine='python')
+    sims_dict = pd.Series(
+        sims_df.Simulation.values, index=sims_df.Internal_name).to_dict()
     S50, S125, S220, T50, T125, T220 = {}, {}, {}, {}, {}, {}
-    for simulation in simulations:
+    for simulation in sims_dict.keys():
         fp = '../../../work/projects/p_so-clim/GCM_data/RowanMITgcm/'
-        ds = open_dataset(fp + simulation)
+        ds = open_dataset(fp + str(simulation))
         ds['time'] = moords['time'].isel(time=slice(0, len(ds['time'])))  # Sometimes the model is short
         ds['S'] = ds['S'] - moords['SA'].isel(time=slice(0, len(ds['time'])))
         ds['CT'] = ds['CT'] - moords['CT'].isel(time=slice(0, len(ds['time'])))
         time = ds['time'].to_numpy()
-        S50[simulation] = (time, np.abs(ds['S'].sel(Z=-50).to_numpy()))
-        S125[simulation] = (time, np.abs(ds['S'].sel(Z=-125).to_numpy()))
-        S220[simulation] = (time, np.abs(ds['S'].sel(Z=-220).to_numpy()))
-        T50[simulation] = (time, np.abs(ds['CT'].sel(Z=-50).to_numpy()))
-        T125[simulation] = (time, np.abs(ds['CT'].sel(Z=-125).to_numpy()))
-        T220[simulation] = (time, np.abs(ds['CT'].sel(Z=-220).to_numpy()))
+        S50[sims_dict[simulation][1:]] = (time, np.abs(ds['S'].sel(Z=-50).to_numpy()))
+        S125[sims_dict[simulation][1:]] = (time, np.abs(ds['S'].sel(Z=-125).to_numpy()))
+        S220[sims_dict[simulation][1:]] = (time, np.abs(ds['S'].sel(Z=-220).to_numpy()))
+        T50[sims_dict[simulation][1:]] = (time, np.abs(ds['CT'].sel(Z=-50).to_numpy()))
+        T125[sims_dict[simulation][1:]] = (time, np.abs(ds['CT'].sel(Z=-125).to_numpy()))
+        T220[sims_dict[simulation][1:]] = (time, np.abs(ds['CT'].sel(Z=-220).to_numpy()))
 
     # Convert dictionaries to DataFrames
     S50_df = pd.DataFrame()
@@ -147,7 +146,7 @@ def plot_model_evaluation_time_series():
         'T220': T220_rmse,
     })
 
-    # Normalize each metric and score the simulations
+    # Norm each metric and score the simulations
     metrics_norm = metrics / metrics.mean(axis=0)
     score = metrics_norm.mean(axis=1).sort_values()
 
@@ -162,7 +161,7 @@ def plot_model_evaluation_time_series():
     score.plot.bar(ax=ax7, color=colour)
 
     # Highlighting a specific run
-    runid = 'mrb_121_1'
+    runid = '1'
     S50_df[runid].plot(ax=ax1, legend=False, color='k')
     S125_df[runid].plot(ax=ax3, legend=False, color='k')
     S220_df[runid].plot(ax=ax5, legend=False, color='k')
@@ -176,7 +175,7 @@ def plot_model_evaluation_time_series():
     for bar in ax7.patches:
         height = bar.get_height()
         ax7.text(
-            bar.get_x() + bar.get_width()/2,
+            bar.get_x() + bar.get_width()/2 + 0.01,
             height/2,                 # middle of the bar
             f'{height:.3f}',
             fontsize=8,
@@ -203,9 +202,8 @@ def plot_model_evaluation_time_series():
         ax.set_xticklabels([])
     ax7.set_axisbelow(True)
     ax7.grid(axis='y')
-    ax7.tick_params(axis='x', rotation=30)
-    for label in ax7.get_xticklabels():
-        label.set_ha('right')
+    ax7.tick_params(axis='x', rotation=0)
+    ax7.set_xlabel("Simulation", fontsize=8)
 
     # Add panel letters and titles
     ax1.set_title("Conservative temperature error (℃)", fontsize=8)
@@ -221,7 +219,7 @@ def plot_model_evaluation_time_series():
     add_title(ax4, '(d) 125 m sensor')
     add_title(ax5, '(e) 220 m sensor')
     add_title(ax6, '(f) 220 m sensor')
-    add_title(ax7, '(g) Normalised model-observation mean RMSE')
+    add_title(ax7, '(g) Normalised mean RMSE (all sensors)')
 
     plt.suptitle("Model-observation differences", fontsize=8)
     plt.subplots_adjust(

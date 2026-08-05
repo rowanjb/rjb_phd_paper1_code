@@ -97,6 +97,7 @@ NEW PAPER RUNS:
 runid=mrb_120, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=3.1, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 -> First basic run for the paper serving as a baseline for other runs
 runid=mrb_120_1; repeated twin of above to test different deltaT (here: 17.25)
+runid=mrb_120_2; repeated twin of above to test different deltaT (here: 17.05)
 
 runid=mrb_121, dx=4m, dr=vr, dt=4s, Nx=33,  Ny=594, Nr=99,  tiles=1x9, lead_width=100m, viscC2Smag=4, viscAz=2.E-4, viscAh=0, diffKhT=0, diffKzT=0, diffKhS=0, diffKzS=0, tempAdvScheme=33, saltAdvScheme=33, Q=200W, sf=StefansLaw(0.037), forcing_time=24h, total_time=72h, initial_conditions=mooring(4_layers), tfreeze=-1.9,
 runid=mrb_121_1; repeated twin of above to test different deltaT (here: 17.25)
